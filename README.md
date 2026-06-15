@@ -68,5 +68,6 @@ a Firebase service-account JSON key with Hosting deploy permission:
      < ~/Downloads/luxyn-demo-a66a8-firebase-adminsdk-XXXXX.json
    ```
 3. Delete the downloaded key file.
-
+  
+  
 After the secret is set, push to `main` to trigger the first automated deploy.
