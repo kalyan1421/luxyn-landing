@@ -74,3 +74,9 @@ body { margin: 0; -webkit-font-smoothing: antialiased; }
 
 @media (max-width: 1480px) { #navbar .nbinner { padding: 0 40px; } }
 @media (max-width: 1180px) { #navbar .nblinks { display: none; } }
+
+/* gallery card hover labels */
+.card-overlay { opacity: 0; transition: opacity .45s cubic-bezier(.16,1,.3,1); }
+.card-label { opacity: 0; transform: translateY(8px); transition: opacity .4s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1); }
+.gallery-card:hover .card-overlay { opacity: 1; }
+.gallery-card:hover .card-label { opacity: 1; transform: translateY(0); }

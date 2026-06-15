@@ -248,27 +248,46 @@ export default function Landing() {
             <E as="h2" className="rv" css="transition-delay:80ms;margin:10px 0 0;width:843px;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:44px;line-height:1.0;color:rgb(33,58,92)">A space for independent beauty &amp; wellness professionals.</E>
           </div>
           <div style={S("position:absolute;left:106px;top:227px;width:1229px;height:483px;display:flex;flex-direction:row;gap:16px;align-items:flex-start")}>
-            <E className="rv rv-s" css="width:228px;height:483px;border-radius:32px;overflow:hidden;background:#fff;position:relative">
+            {/* tall left card */}
+            <E className="rv rv-s gallery-card" css="width:228px;height:483px;border-radius:32px;overflow:hidden;background:#fff;position:relative">
               <E css="position:absolute;left:-5px;top:0;width:252px;height:488px;background:url(/assets/gallery-1.png) 41.808% 8.108%/634.711% 218.337% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
+              <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:52%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 24px")}>
+                <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Estheticians</span>
+              </div>
             </E>
             <div style={S("width:985px;display:flex;flex-direction:column;gap:16px")}>
               <div style={S("display:flex;flex-direction:row;gap:16px;align-items:center")}>
-                <E className="rv rv-s" css="transition-delay:80ms;width:454px;height:231px;border-radius:32px;overflow:hidden;position:relative">
+                <E className="rv rv-s gallery-card" css="transition-delay:80ms;width:454px;height:231px;border-radius:32px;overflow:hidden;position:relative">
                   <E css="position:absolute;left:-17px;top:-96px;width:471px;height:416px;background:url(/assets/gallery-2.png) 7.79% 7.154%/355.556% 268.766% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
+                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
+                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Hair Stylists</span>
+                  </div>
                 </E>
-                <E className="rv rv-s" css="transition-delay:160ms;width:515px;height:231px;border-radius:32px;overflow:hidden;position:relative">
+                <E className="rv rv-s gallery-card" css="transition-delay:160ms;width:515px;height:231px;border-radius:32px;overflow:hidden;position:relative">
                   <E css="position:absolute;left:0;top:-244px;width:567px;height:508px;background:url(/assets/gallery-2.png) 49.597% 81.944%/366.587% 272.34% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
+                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
+                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Colorists</span>
+                  </div>
                 </E>
               </div>
               <div style={S("display:flex;flex-direction:row;gap:16px;align-items:flex-end")}>
-                <E className="rv rv-s" css="transition-delay:120ms;width:406px;height:230px;border-radius:32px;overflow:hidden;position:relative">
+                <E className="rv rv-s gallery-card" css="transition-delay:120ms;width:406px;height:230px;border-radius:32px;overflow:hidden;position:relative">
                   <E css="position:absolute;left:0;top:-89px;width:406px;height:339px;background:url(/assets/gallery-1.png) 16.764% 94.851%/447.813% 358.042% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
+                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
+                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Brow &amp; Lash Artists</span>
+                  </div>
                 </E>
-                <E className="rv rv-s" css="transition-delay:200ms;width:233px;height:227px;border-radius:32px;overflow:hidden;position:relative">
+                <E className="rv rv-s gallery-card" css="transition-delay:200ms;width:233px;height:227px;border-radius:32px;overflow:hidden;position:relative">
                   <E css="position:absolute;left:-10px;top:0;width:253px;height:227px;background:url(/assets/gallery-2.png) 90% 81.364%/378.325% 281.319% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
+                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
+                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Nail Artists</span>
+                  </div>
                 </E>
-                <E className="rv rv-s" css="transition-delay:280ms;width:314px;height:231px;border-radius:32px;overflow:hidden;position:relative">
+                <E className="rv rv-s gallery-card" css="transition-delay:280ms;width:314px;height:231px;border-radius:32px;overflow:hidden;position:relative">
                   <E css="position:absolute;left:-16px;top:-142px;width:392px;height:373px;background:url(/assets/gallery-2.png) 88.462% 8.602%/391.837% 274.531% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
+                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
+                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Massage &amp; Wellness</span>
+                  </div>
                 </E>
               </div>
             </div>
