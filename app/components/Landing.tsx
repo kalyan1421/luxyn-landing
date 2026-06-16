@@ -1,472 +1,679 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { E, S } from "../lib/dc";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
-/**
- * LUXYN landing page — recreated from the Claude Design handoff
- * (project/LUXYN Landing.dc.html). Inline styles are transcribed verbatim
- * (asset urls rebased to /assets/...). Anchored to the design's native 1440px
- * desktop width, centered, per the original.
- */
+/* ─── animation helpers ─────────────────────────────────── */
+const ease = [0.16, 1, 0.3, 1] as const;
+const FU  = { hidden: { opacity: 0, y: 36 },  show: { opacity: 1, y: 0,    transition: { duration: 1,   ease } } };
+const FS  = { hidden: { opacity: 0, scale:.9}, show: { opacity: 1, scale:1, transition: { duration: 1,   ease } } };
+const FL  = { hidden: { opacity: 0, x: -48 }, show: { opacity: 1, x: 0,    transition: { duration: 1,   ease } } };
+const FR  = { hidden: { opacity: 0, x:  48 }, show: { opacity: 1, x: 0,    transition: { duration: 1,   ease } } };
+const FI  = { hidden: { opacity: 0 },          show: { opacity: 1,           transition: { duration: .8         } } };
+const vp  = { once: true, margin: "-10%" } as const;
+
+function delay(d: number) {
+  return { transition: { delay: d, duration: 1, ease } };
+}
+
+/* ─── nav data ──────────────────────────────────────────── */
+const NAV = [
+  { label: "Suites",            target: "philosophy" },
+  { label: "Amenities",         target: "amenities"  },
+  { label: "For Professionals", target: "difference" },
+  { label: "Gallery",           target: "gallery"    },
+  { label: "Find a Pro",        target: "findpro"    },
+  { label: "About",             target: "footer"     },
+];
+
+/* ─── difference cards ──────────────────────────────────── */
+const DIFF = [
+  {
+    icon: <svg width="32" height="34" viewBox="0 0 24 26" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M2 25V10a10 10 0 0 1 20 0v15"/><circle cx="12" cy="11" r="1.2" fill="currentColor" stroke="none"/></svg>,
+    title: "Design-led suites",
+    body:  "The most beautiful private suites in the category — finished to feel like a destination, not a cubicle.",
+  },
+  {
+    icon: <svg width="32" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M4 20c0-8 8-15 17-15 0 9-7 17-15 17a2 2 0 0 1-2-2Z"/><path d="M5 19C9 14 13 11 17 8"/></svg>,
+    title: "Wellness under one roof",
+    body:  "Hair, skin, nails, brows, massage and more — a full sensory experience for every client.",
+  },
+  {
+    icon: <svg width="32" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>,
+    title: "Independence, supported",
+    body:  "Own your business and your hours. Lean on LUXYN for the front desk, upkeep, and marketing.",
+  },
+  {
+    icon: <svg width="32" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 19h18"/><path d="M5 19a7 7 0 0 1 14 0"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1.1" fill="currentColor" stroke="none"/></svg>,
+    title: "On-site care",
+    body:  "A real person on site every day to welcome your clients and keep your space effortless.",
+  },
+];
+
+/* ─── amenity cards ─────────────────────────────────────── */
+const AMEN = [
+  { icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>,  title: "24/7 SECURE ACCESS",  body: "Your business, your hours. Complete autonomy with a state-of-the-art security system for peace of mind." },
+  { icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="5"/><circle cx="7" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>, title: "ON-SITE LAUNDRY",    body: "Complimentary high-capacity laundry facilities designed to keep your workflow seamless and stress-free." },
+  { icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 9h12v5a5 5 0 0 1-10 0z"/><path d="M17 10h2a2 2 0 0 1 0 5h-2"/><path d="M8 4v2M11.5 3v2"/></svg>, title: "CLIENT LOUNGE",      body: "A sophisticated waiting area with specialty coffee and refreshments to delight your guests from arrival." },
+  { icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 9a16 16 0 0 1 20 0"/><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 16a6 6 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1.1" fill="currentColor" stroke="none"/></svg>, title: "HIGH-SPEED FIBER",    body: "Dedicated enterprise-grade Wi-Fi for seamless booking, processing, and social media management." },
+  { icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></svg>, title: "DAILY COMMON CARE",  body: "Professional cleaning of all shared areas ensures the facility always reflects your high standards." },
+  { icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 14c-2.2 0-4 1.8-4 5 3.2 0 5-1.8 5-4"/><path d="M19 3l2 2-9.5 9.5-2-2z"/></svg>, title: "CUSTOM BRANDING",    body: "Paint and decorate your suite to match your brand's unique identity and professional aesthetic." },
+];
+
+/* ─── shared button styles ──────────────────────────────── */
+const btnGold = "h-[40px] px-6 rounded-full font-bold text-[13px] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(194,160,107,.45)] cursor-pointer";
+const btnOutline = "h-[40px] px-6 rounded-full font-bold text-[13px] transition-all duration-300 hover:-translate-y-0.5 cursor-pointer";
+
 export default function Landing() {
-  // smooth-scroll to a section (ports the design's `navClick`)
-  const nav = (target: string) => {
-    const el = document.getElementById(target);
-    if (!el) return;
-    const y = el.getBoundingClientRect().top + window.scrollY - 64;
-    window.scrollTo({ top: y < 0 ? 0 : y, behavior: "smooth" });
-  };
-
   const [menuOpen, setMenuOpen] = useState(false);
-  const menuNav = (target: string) => {
-    setMenuOpen(false);
-    setTimeout(() => nav(target), 50);
+  const [scrollY, setScrollY]   = useState(0);
+  const [heroH,   setHeroH]     = useState(750);
+  const heroRef  = useRef<HTMLElement>(null);
+  const heroBgRef = useRef<HTMLDivElement>(null);
+
+  /* smooth-scroll */
+  const nav = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 64), behavior: "smooth" });
   };
+  const menuNav = (id: string) => { setMenuOpen(false); setTimeout(() => nav(id), 50); };
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  /* measure hero height once */
+  useEffect(() => { if (heroRef.current) setHeroH(heroRef.current.offsetHeight); }, []);
 
-  // scale page content to fit viewport width
+  /* viewport zoom */
   useEffect(() => {
     const apply = () => {
       const el = document.getElementById("pageRoot");
       if (!el) return;
-      const scale = window.innerWidth / 1440;
-      el.style.zoom = String(scale);
+      el.style.zoom = String(window.innerWidth / 1440);
     };
     apply();
     window.addEventListener("resize", apply);
     return () => window.removeEventListener("resize", apply);
   }, []);
 
-  // scroll-driven nav reveal, progress bar, parallax, back-to-top, scrollspy
+  /* scroll effects */
   useEffect(() => {
-    const spyIds = ["gallery", "difference", "findpro", "amenities", "footer"];
-    const onScroll = () => {
-      const y = window.scrollY || 0;
-      const doc = document.documentElement;
-      const dh = doc.scrollHeight - window.innerHeight || 1;
-      const navbar = document.getElementById("navbar");
-      const progress = document.getElementById("progress");
-      const totop = document.getElementById("totop");
-      const heroBg = document.getElementById("heroBg");
-      const hero = document.getElementById("hero");
-      if (progress)
-        progress.style.width =
-          Math.min(100, Math.max(0, (y / dh) * 100)) + "%";
-      if (navbar) {
-        const trigger = hero ? hero.offsetHeight - 90 : 600;
-        if (y > trigger) navbar.classList.add("nav-show");
-        else navbar.classList.remove("nav-show");
-      }
-      if (totop) {
-        const on = y > 900;
-        totop.style.opacity = on ? "1" : "0";
-        totop.style.pointerEvents = on ? "auto" : "none";
-        totop.style.transform = on ? "translateY(0)" : "translateY(12px)";
-      }
-      if (heroBg && y < window.innerHeight * 1.5) {
-        heroBg.style.transform = "translate3d(0," + y * 0.28 + "px,0)";
-      }
-      let active: string | null = null;
-      const probe = y + window.innerHeight * 0.36;
-      spyIds.forEach((id) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        const top = el.getBoundingClientRect().top + window.scrollY;
-        if (probe >= top && probe < top + el.offsetHeight) active = id;
-      });
-      document.querySelectorAll("[data-nav]").forEach((l) => {
-        const link = l as HTMLElement;
-        if (link.dataset.target === active) link.classList.add("active");
-        else link.classList.remove("active");
-      });
+    const tick = () => {
+      setScrollY(window.scrollY);
+      const dh = document.documentElement.scrollHeight - window.innerHeight || 1;
+      const p = document.getElementById("prog");
+      if (p) p.style.width = Math.min(100, (window.scrollY / dh) * 100) + "%";
+      if (heroBgRef.current && window.scrollY < heroH * 1.5)
+        heroBgRef.current.style.transform = `translate3d(0,${window.scrollY * 0.28}px,0)`;
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    requestAnimationFrame(onScroll);
-    const t = setTimeout(onScroll, 160);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
+    window.addEventListener("scroll", tick, { passive: true });
+    window.addEventListener("resize", tick);
+    window.addEventListener("keydown", onKey);
+    requestAnimationFrame(tick);
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      clearTimeout(t);
+      window.removeEventListener("scroll", tick);
+      window.removeEventListener("resize", tick);
+      window.removeEventListener("keydown", onKey);
     };
-  }, []);
+  }, [heroH]);
+
+  const navVisible = scrollY > heroH - 90;
+  const showTop    = scrollY > 900;
 
   return (
-    <div style={S("position:relative")}>
-      {/* scroll progress bar */}
-      <div
-        id="progress"
-        style={S(
-          "position:fixed;top:0;left:0;height:3px;width:0;background:rgb(194,160,107);z-index:120"
-        )}
-      ></div>
+    <div className="relative overflow-x-hidden">
 
-      {/* sticky nav — hamburger + logo + CTA */}
+      {/* ── progress bar ─────────────────────────────── */}
+      <div id="prog" className="fixed top-0 left-0 h-[3px] bg-champagne z-[120]" style={{ width: 0, transition: "width .1s linear" }} />
+
+      {/* ── sticky navbar ────────────────────────────── */}
       <div
         id="navbar"
-        style={S("position:fixed;top:0;left:0;width:100vw;z-index:110")}
+        className="fixed top-0 left-0 w-full z-[110] transition-[transform,background,box-shadow] duration-500"
+        style={{
+          transform:    navVisible ? "translateY(0)" : "translateY(-100%)",
+          background:   navVisible ? "rgba(18,31,53,.92)" : "transparent",
+          backdropFilter: navVisible ? "blur(12px)" : "none",
+          boxShadow:    navVisible ? "0 10px 30px rgba(0,0,0,.28)" : "none",
+        }}
       >
-        <div
-          className="nbinner"
-          style={S(
-            "width:100%;max-width:1440px;margin:0 auto;height:72px;padding:0 40px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;position:relative"
-          )}
-        >
-          {/* hamburger */}
-          <E
+        <div className="relative flex items-center justify-between h-[72px] px-10 max-w-[1440px] mx-auto">
+          <button
             onClick={() => setMenuOpen(true)}
-            css="width:50px;height:50px;border-radius:333px;background:rgba(255,255,255,.1);backdrop-filter:blur(9.8px);box-shadow:inset 0 0 0 1px rgba(255,248,248,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .35s;flex-shrink:0"
-            hover="background:rgba(255,255,255,.22)"
+            className="w-[50px] h-[50px] rounded-full flex items-center justify-center transition-[background] duration-300 hover:bg-white/20"
+            style={{ background: "rgba(255,255,255,.1)", backdropFilter: "blur(10px)", boxShadow: "inset 0 0 0 1px rgba(255,248,248,.3)" }}
           >
-            <svg width="22" height="16" viewBox="0 0 22 16" fill="rgb(255,255,255)">
-              <path d="M1.571 0H9.429a1.6 1.6 0 0 1 0 3.2H1.571a1.6 1.6 0 0 1 0-3.2ZM12.571 12.8h7.858a1.6 1.6 0 0 1 0 3.2h-7.858a1.6 1.6 0 0 1 0-3.2ZM1.571 6.4h18.858a1.6 1.6 0 0 1 0 3.2H1.571a1.6 1.6 0 0 1 0-3.2Z"></path>
-            </svg>
-          </E>
-          {/* centered logo */}
-          <div
+            <HamburgerSVG />
+          </button>
+          <button
             onClick={() => nav("hero")}
-            style={S("position:absolute;left:50%;transform:translateX(-50%);width:150px;height:44px;cursor:pointer;background:url(/assets/logo.png) 51.02% 65.351%/119.522% 416.667% no-repeat")}
-          ></div>
-          {/* CTA */}
-          <E
+            className="absolute left-1/2 -translate-x-1/2 w-[150px] h-[44px]"
+            style={{ background: "url(/assets/logo.png) 51.02% 65.351%/119.522% 416.667% no-repeat" }}
+          />
+          <button
             onClick={() => nav("cta")}
-            css="height:40px;border-radius:333px;background:rgb(194,160,107);display:flex;align-items:center;justify-content:center;padding:0 24px;cursor:pointer;transition:transform .35s,box-shadow .35s,background .35s;flex-shrink:0"
-            hover="transform:translateY(-2px);box-shadow:0 12px 26px rgba(194,160,107,.45);background:rgb(206,173,120)"
+            className={btnGold}
+            style={{ background: "rgb(194,160,107)", color: "rgb(20,35,59)", fontFamily: "'Inter',sans-serif" }}
           >
-            <span style={S("font-family:'Inter',sans-serif;font-weight:700;font-size:13px;color:rgb(20,35,59);white-space:nowrap")}>
-              Lease a Suite
-            </span>
-          </E>
+            Lease a Suite
+          </button>
         </div>
       </div>
 
-      {/* fullscreen menu overlay */}
-      {menuOpen && (
-        <div
-          style={S("position:fixed;inset:0;z-index:200;background:rgba(10,20,38,.55);backdrop-filter:blur(6px)")}
-          onClick={(e) => { if (e.target === e.currentTarget) setMenuOpen(false); }}
-        >
-          <div className="menu-overlay-box" style={S("position:absolute;top:12px;left:12px;right:12px;background:rgba(253,251,247,.97);border-radius:22px;padding:28px 56px 64px")}>
-            {/* close button */}
-            <button
-              onClick={() => setMenuOpen(false)}
-              style={S("width:50px;height:50px;border-radius:333px;background:rgba(20,35,59,.07);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .25s")}
+      {/* ── glassmorphism menu overlay ────────────────── */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[200]"
+            style={{ background: "rgba(5,12,24,.72)", backdropFilter: "blur(8px)" }}
+            onClick={e => { if (e.target === e.currentTarget) setMenuOpen(false); }}
+          >
+            <motion.div
+              key="panel"
+              initial={{ opacity: 0, y: -20, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.97 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="absolute top-3 left-[5%] right-[5%] rounded-[28px] px-14 py-8"
+              style={{
+                background: "rgba(25,40,65,0.52)",
+                backdropFilter: "blur(25px)",
+                WebkitBackdropFilter: "blur(25px)",
+                border: "1px solid rgba(255,255,255,.1)",
+                boxShadow: "0 8px 48px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08)",
+              }}
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgb(20,35,59)" strokeWidth="2" strokeLinecap="round">
-                <path d="M1 1 L13 13 M13 1 L1 13"/>
-              </svg>
-            </button>
-            {/* nav grid — 2 columns */}
-            <div style={S("margin-top:48px;display:grid;grid-template-columns:1fr 1fr;row-gap:0")}>
-              <span className="menu-link" onClick={() => menuNav("philosophy")}>Suites</span>
-              <span className="menu-link" onClick={() => menuNav("amenities")}>Amenities</span>
-              <span className="menu-link" onClick={() => menuNav("difference")}>For Professionals</span>
-              <span className="menu-link" onClick={() => menuNav("gallery")}>Gallery</span>
-              <span className="menu-link" onClick={() => menuNav("findpro")}>Find a Pro</span>
-              <span className="menu-link" onClick={() => menuNav("footer")}>About</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* back to top */}
-      <div
-        id="totop"
-        data-target="hero"
-        onClick={() => nav("hero")}
-        style={S(
-          "position:fixed;right:28px;bottom:28px;width:50px;height:50px;border-radius:50%;background:rgb(194,160,107);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:115;opacity:0;pointer-events:none;transform:translateY(12px);transition:opacity .4s,transform .4s,box-shadow .35s;box-shadow:0 10px 26px rgba(0,0,0,.3)"
+              <button
+                onClick={() => setMenuOpen(false)}
+                className="w-[50px] h-[50px] rounded-full flex items-center justify-center transition-[background] duration-300 hover:bg-white/10"
+                style={{ background: "rgba(255,255,255,.08)" }}
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(255,255,255,.8)" strokeWidth="1.8" strokeLinecap="round">
+                  <path d="M1 1 L13 13 M13 1 L1 13"/>
+                </svg>
+              </button>
+              <div className="mt-8 grid grid-cols-2" style={{ gap: "0 80px" }}>
+                {NAV.map(({ label, target }) => (
+                  <button key={label} onClick={() => menuNav(target)} className="menu-link text-left">
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
         )}
+      </AnimatePresence>
+
+      {/* ── back to top ──────────────────────────────── */}
+      <motion.button
+        onClick={() => nav("hero")}
+        className="fixed right-7 bottom-7 w-[50px] h-[50px] rounded-full flex items-center justify-center z-[115] cursor-pointer"
+        style={{ background: "rgb(194,160,107)", boxShadow: "0 10px 26px rgba(0,0,0,.3)" }}
+        animate={{ opacity: showTop ? 1 : 0, y: showTop ? 0 : 12, pointerEvents: showTop ? "auto" : "none" }}
+        transition={{ duration: 0.4 }}
+        whileHover={{ boxShadow: "0 16px 34px rgba(194,160,107,.55)" }}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgb(20,35,59)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 19V5M5 12l7-7 7 7"></path>
+          <path d="M12 19V5M5 12l7-7 7 7"/>
         </svg>
-      </div>
+      </motion.button>
 
-      <div id="pageRoot" style={S("position:relative;width:1440px;font-family:'Inter',sans-serif")}>
+      {/* ═══════════════ PAGE ROOT (zoomed) ════════════ */}
+      <div id="pageRoot" style={{ position: "relative", width: 1440, fontFamily: "'Inter',sans-serif" }}>
 
-        {/* ============ HERO ============ */}
-        <section id="hero" data-screen-label="Hero" style={S("position:relative;width:1440px;height:775px;overflow:hidden;background:rgb(20,35,59);display:flex;align-items:center;justify-content:center")}>
-          <div id="heroBg" style={S("position:absolute;left:0;top:-8%;width:1440px;height:124%;background:url(/assets/hero-bg.png) center/cover no-repeat;will-change:transform")}></div>
-          <div style={S("position:absolute;inset:0;background:linear-gradient(110deg,rgba(20,35,59,.86) 0%,rgba(20,35,59,.45) 46%,rgba(20,35,59,.08) 70%)")}></div>
+        {/* ── HERO ───────────────────────────────────── */}
+        <section
+          ref={heroRef}
+          id="hero"
+          className="relative overflow-hidden flex items-center justify-center"
+          style={{ width: 1440, height: 775, background: "rgb(20,35,59)" }}
+        >
+          <div
+            ref={heroBgRef}
+            className="absolute will-change-transform"
+            style={{ left: 0, top: "-8%", width: 1440, height: "124%", background: "url(/assets/hero-bg.png) center/cover no-repeat" }}
+          />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(110deg,rgba(20,35,59,.86) 0%,rgba(20,35,59,.45) 46%,rgba(20,35,59,.08) 70%)" }} />
 
           {/* in-hero top bar */}
-          <div style={S("position:absolute;left:100px;top:24px;width:1240px;height:50px;z-index:5")}>
-            <E onClick={() => setMenuOpen(true)} css="position:absolute;left:0;top:0;width:50px;height:50px;border-radius:333px;background:rgba(255,255,255,.1);backdrop-filter:blur(9.8px);box-shadow:inset 0 0 0 1px rgb(255,248,248);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .35s" hover="background:rgba(255,255,255,.22)">
-              <svg width="22" height="16" viewBox="0 0 22 16" fill="rgb(255,255,255)">
-                <path d="M1.571 0H9.429a1.6 1.6 0 0 1 0 3.2H1.571a1.6 1.6 0 0 1 0-3.2ZM12.571 12.8h7.858a1.6 1.6 0 0 1 0 3.2h-7.858a1.6 1.6 0 0 1 0-3.2ZM1.571 6.4h18.858a1.6 1.6 0 0 1 0 3.2H1.571a1.6 1.6 0 0 1 0-3.2Z"></path>
-              </svg>
-            </E>
-            <E data-target="cta" onClick={() => nav("cta")} css="position:absolute;left:1104px;top:5px;height:40px;border-radius:333px;background:rgb(194,160,107);display:flex;align-items:center;justify-content:center;padding:0 24px;cursor:pointer;transition:transform .35s,box-shadow .35s,background .35s" hover="transform:translateY(-2px);box-shadow:0 12px 26px rgba(194,160,107,.45);background:rgb(206,173,120)">
-              <span style={S("font-family:'Inter',sans-serif;font-weight:700;font-size:13px;color:rgb(20,35,59);white-space:nowrap")}>Lease a Suite</span>
-            </E>
+          <div className="absolute z-[5]" style={{ left: 100, top: 24, width: 1240, height: 50 }}>
+            <button
+              onClick={() => setMenuOpen(true)}
+              className="absolute left-0 top-0 w-[50px] h-[50px] rounded-full flex items-center justify-center transition-[background] duration-300 hover:bg-white/20"
+              style={{ background: "rgba(255,255,255,.1)", backdropFilter: "blur(9.8px)", boxShadow: "inset 0 0 0 1px rgb(255,248,248)" }}
+            >
+              <HamburgerSVG />
+            </button>
+            <button
+              onClick={() => nav("cta")}
+              className={`absolute right-0 top-[5px] ${btnGold}`}
+              style={{ background: "rgb(194,160,107)", color: "rgb(20,35,59)", fontFamily: "'Inter',sans-serif" }}
+            >
+              Lease a Suite
+            </button>
           </div>
-          <div style={S("position:absolute;left:595px;top:24px;width:251px;height:72px;z-index:5;background:url(/assets/logo.png) 51.02% 65.351%/119.522% 416.667% no-repeat")}></div>
+          {/* logo */}
+          <div
+            className="absolute z-[5]"
+            style={{ left: 595, top: 24, width: 251, height: 72, background: "url(/assets/logo.png) 51.02% 65.351%/119.522% 416.667% no-repeat" }}
+          />
 
-          {/* centered content */}
-          <div style={S("position:relative;width:1440px;height:560px;z-index:4")}>
-            <div style={S("position:absolute;left:182px;top:120px;width:513px")}>
-              <E as="h1" className="rv" css="margin:0;width:513px;font-family:'Cormorant Garamond',serif;font-weight:500;font-size:48px;line-height:1.0;color:rgb(255,255,255)">
+          {/* hero content */}
+          <div className="relative z-[4]" style={{ width: 1440, height: 560 }}>
+            {/* left copy */}
+            <motion.div
+              className="absolute flex flex-col"
+              style={{ left: 182, top: 120, width: 513 }}
+              initial="hidden"
+              animate="show"
+              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.13 } } }}
+            >
+              <motion.h1
+                variants={FU}
+                className="m-0 font-display font-medium text-white"
+                style={{ fontSize: 52, lineHeight: 1.0, letterSpacing: "-0.01em" }}
+              >
                 Space to do your best work.<br />A calm home for your craft.
-              </E>
-              <E as="p" className="rv" css="transition-delay:120ms;margin:18px 0 0;width:499px;font-family:'Inter',sans-serif;font-weight:400;font-size:12px;line-height:1.0;color:rgba(255,255,255,.4)">
+              </motion.h1>
+              <motion.p
+                variants={FU}
+                className="font-ui font-normal text-white/40"
+                style={{ marginTop: 18, width: 499, fontSize: 12, lineHeight: 1.6 }}
+              >
                 LUXYN leases private, design-led suites to independent beauty and wellness professionals — giving you the freedom to build, serve, and grow in an elevated space.
-              </E>
-              <E className="rv" css="transition-delay:240ms;margin-top:30px;display:flex;flex-direction:row;gap:12px;align-items:center">
-                <E data-target="cta" onClick={() => nav("cta")} css="height:40px;border-radius:333px;background:rgb(194,160,107);display:flex;align-items:center;justify-content:center;padding:0 24px;cursor:pointer;transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,background .35s" hover="transform:translateY(-2px);box-shadow:0 12px 26px rgba(194,160,107,.45);background:rgb(206,173,120)">
-                  <span style={S("font-family:'Inter',sans-serif;font-weight:700;font-size:13px;color:rgb(20,35,59);white-space:nowrap")}>Lease a Suite</span>
-                </E>
-                <E data-target="findpro" onClick={() => nav("findpro")} css="height:40px;border-radius:333px;box-shadow:inset 0 0 0 1px rgb(194,160,107);display:flex;align-items:center;justify-content:center;padding:0 24px;cursor:pointer;transition:transform .35s,background .35s,box-shadow .35s" hover="transform:translateY(-2px);background:rgba(194,160,107,.14);box-shadow:inset 0 0 0 1px rgb(194,160,107),0 8px 20px rgba(194,160,107,.2)">
-                  <span style={S("font-family:'Inter',sans-serif;font-weight:700;font-size:13px;color:rgb(194,160,107);white-space:nowrap")}>Book a Tour</span>
-                </E>
-              </E>
-            </div>
+              </motion.p>
+              <motion.div variants={FU} className="flex gap-3 items-center" style={{ marginTop: 30 }}>
+                <button
+                  onClick={() => nav("cta")}
+                  className={btnGold}
+                  style={{ background: "rgb(194,160,107)", color: "rgb(20,35,59)", fontFamily: "'Inter',sans-serif" }}
+                >
+                  Lease a Suite
+                </button>
+                <button
+                  onClick={() => nav("findpro")}
+                  className={btnOutline}
+                  style={{ boxShadow: "inset 0 0 0 1px rgb(194,160,107)", color: "rgb(194,160,107)", fontFamily: "'Inter',sans-serif" }}
+                >
+                  Book a Tour
+                </button>
+              </motion.div>
+            </motion.div>
 
-            <E className="rv rv-s" css="transition-delay:200ms;position:absolute;left:787px;top:14px;width:456px;height:533px;border-radius:500px 500px 0 0;box-shadow:inset 0 0 0 5px rgb(184,153,104);padding:6px 39px 6px 0;box-sizing:border-box">
-              <div className="floaty" style={S("position:absolute;left:0;top:6px;width:417px;height:521px;border-radius:500px 500px 0 0;background:rgb(238,237,241);box-shadow:inset 0 0 0 5px rgb(184,153,104);overflow:hidden")}>
-                <div style={S("position:absolute;left:0;top:-6px;width:417px;height:533px;overflow:hidden;border-radius:3333px 3333px 0 0;background:linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.2)),url(/assets/hero-arch.png) 50% 0%/125% 132.27% no-repeat;box-shadow:inset 0 0 0 5px rgb(184,153,104)")}></div>
+            {/* right: arch + quote */}
+            <motion.div
+              className="absolute"
+              style={{ left: 787, top: 14, width: 456, height: 533 }}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div
+                className="floaty absolute"
+                style={{ left: 0, top: 6, width: 417, height: 521, borderRadius: "500px 500px 0 0", background: "rgb(238,237,241)", boxShadow: "inset 0 0 0 5px rgb(184,153,104)", overflow: "hidden" }}
+              >
+                <div
+                  style={{
+                    position: "absolute", left: 0, top: -6, width: 417, height: 533,
+                    borderRadius: "3333px 3333px 0 0",
+                    background: "linear-gradient(rgba(255,255,255,.2),rgba(255,255,255,.2)),url(/assets/hero-arch.png) 50% 0%/125% 132.27% no-repeat",
+                    boxShadow: "inset 0 0 0 5px rgb(184,153,104)",
+                  }}
+                />
               </div>
-              <div className="floaty2" style={S("position:absolute;left:-48px;top:338px;width:240px;height:143px;border-radius:32px;background:rgb(250,249,252);box-shadow:inset 0 0 0 1px rgba(196,198,207,.3),0 24px 48px rgba(10,22,40,.28);display:flex;align-items:flex-start;padding:32px")}>
-                <span style={S("font-family:'Inter',sans-serif;font-style:italic;font-size:16px;line-height:25.6px;color:rgb(2,36,72)")}>&quot;A space that honors the artistry of my work.&quot;</span>
+              <div
+                className="floaty2 absolute flex items-start rounded-[32px]"
+                style={{
+                  left: -48, top: 338, width: 240, height: 143, padding: 32,
+                  background: "rgb(250,249,252)",
+                  boxShadow: "inset 0 0 0 1px rgba(196,198,207,.3),0 24px 48px rgba(10,22,40,.28)",
+                }}
+              >
+                <span className="font-ui italic text-[rgb(2,36,72)]" style={{ fontSize: 16, lineHeight: 1.6 }}>
+                  &quot;A space that honors the artistry of my work.&quot;
+                </span>
               </div>
-            </E>
+            </motion.div>
           </div>
 
-          {/* marquee */}
-          <div style={S("position:absolute;left:0;bottom:0;width:1440px;height:39px;overflow:hidden;background:rgb(194,160,107);display:flex;align-items:center;z-index:5")}>
+          {/* champagne marquee */}
+          <div
+            className="absolute left-0 bottom-0 overflow-hidden flex items-center z-[5]"
+            style={{ width: 1440, height: 39, background: "rgb(194,160,107)" }}
+          >
             <div className="marq">
-              <span style={S("font-family:'Inter',sans-serif;font-size:16px;letter-spacing:.29em;color:rgb(255,255,255);padding-right:.29em")}>SALON · WELLNESS · SPA · Private Suites · Premium Amenities · Flexible Leasing · Client-Friendly Location · </span>
-              <span style={S("font-family:'Inter',sans-serif;font-size:16px;letter-spacing:.29em;color:rgb(255,255,255);padding-right:.29em")}>SALON · WELLNESS · SPA · Private Suites · Premium Amenities · Flexible Leasing · Client-Friendly Location · </span>
+              {[0, 1].map(i => (
+                <span key={i} className="font-ui text-white pr-[.29em]" style={{ fontSize: 16, letterSpacing: ".29em" }}>
+                  SALON · WELLNESS · SPA · Private Suites · Premium Amenities · Flexible Leasing · Client-Friendly Location ·{" "}
+                </span>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* ============ ABOUT / PHILOSOPHY ============ */}
-        <section id="philosophy" data-screen-label="Philosophy" style={S("position:relative;width:1440px;min-height:775px;overflow:hidden;background:rgb(243,236,220)")}>
-          <div style={S("position:absolute;left:144px;top:123px;width:466px")}>
-            <E as="span" className="rv" css="display:block;font-family:'Inter',sans-serif;font-weight:600;font-size:12px;letter-spacing:1.8px;color:rgb(198,155,95)">OUR PHILOSOPHY</E>
-            <E as="h2" className="rv" css="transition-delay:80ms;margin:26px 0 0;width:466px;font-family:'EB Garamond',serif;font-weight:400;font-size:32px;line-height:35.2px;color:rgb(2,36,72)">A refined space for professionals who care deeply about their work.</E>
-            <E as="p" className="rv" css="transition-delay:160ms;margin:34px 0 0;width:466px;font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:25.6px;color:rgb(67,71,78)">LUXYN was founded on the belief that environment dictates energy. We provide more than just four walls; we provide a curated atmosphere designed to enhance the client experience and support your professional growth with architectural elegance.</E>
-            <E className="rv" css="transition-delay:240ms;margin-top:34px;border:1px solid rgba(196,198,207,.5);padding:16px 0;display:flex;flex-direction:column;gap:8px">
-              <span style={S("font-family:'Inter',sans-serif;font-weight:600;font-style:italic;font-size:16px;line-height:25.6px;color:rgb(2,36,72)")}>&quot;Luxyn has completely transformed how my clients perceive my brand.&quot;</span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:600;font-size:12px;letter-spacing:1.8px;color:rgb(67,71,78)")}>— SARAH J., MASTER COLORIST</span>
-            </E>
+        {/* ── PHILOSOPHY ─────────────────────────────── */}
+        <section id="philosophy" className="relative overflow-hidden" style={{ width: 1440, minHeight: 775, background: "rgb(243,236,220)" }}>
+          <div className="absolute" style={{ left: 144, top: 123, width: 466 }}>
+            <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU}
+              className="block font-ui font-semibold text-[rgb(198,155,95)]"
+              style={{ fontSize: 12, letterSpacing: 1.8 }}
+            >
+              OUR PHILOSOPHY
+            </motion.span>
+            <motion.h2 initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.08)}
+              className="font-editorial font-normal text-[rgb(2,36,72)]"
+              style={{ margin: "26px 0 0", width: 466, fontSize: 34, lineHeight: 1.1 }}
+            >
+              A refined space for professionals who care deeply about their work.
+            </motion.h2>
+            <motion.p initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.16)}
+              className="font-ui font-normal text-[rgb(67,71,78)]"
+              style={{ margin: "34px 0 0", width: 466, fontSize: 16, lineHeight: 1.6 }}
+            >
+              LUXYN was founded on the belief that environment dictates energy. We provide more than just four walls; we provide a curated atmosphere designed to enhance the client experience and support your professional growth with architectural elegance.
+            </motion.p>
+            <motion.div initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.24)}
+              className="flex flex-col gap-2"
+              style={{ marginTop: 34, borderTop: "1px solid rgba(196,198,207,.5)", borderBottom: "1px solid rgba(196,198,207,.5)", padding: "16px 0" }}
+            >
+              <span className="font-ui font-semibold italic text-[rgb(2,36,72)]" style={{ fontSize: 16, lineHeight: 1.6 }}>
+                &quot;Luxyn has completely transformed how my clients perceive my brand.&quot;
+              </span>
+              <span className="font-ui font-semibold text-[rgb(67,71,78)]" style={{ fontSize: 12, letterSpacing: 1.8 }}>
+                — SARAH J., MASTER COLORIST
+              </span>
+            </motion.div>
           </div>
-          <E className="rv rv-r" css="position:absolute;left:633px;top:155px;width:323px;height:530px">
-            <E css="position:absolute;left:0;top:80px;width:323px;height:450px;overflow:hidden;border-radius:500px 500px 0 0;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-10px)">
-              <E css="position:absolute;inset:0;background:url(/assets/about-2.png) 50% 50%/139.319% 100% no-repeat;transition:transform .9s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.06)"></E>
-            </E>
-          </E>
-          <E className="rv rv-r" css="transition-delay:140ms;position:absolute;left:972px;top:155px;width:323px;height:450px">
-            <E css="position:absolute;left:0;top:0;width:323px;height:450px;overflow:hidden;border-radius:500px 500px 0 0;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-10px)">
-              <E css="position:absolute;inset:0;background:url(/assets/about-1.png) 50% 50%/139.319% 100% no-repeat;transition:transform .9s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.06)"></E>
-            </E>
-          </E>
+
+          {/* arch image 1 */}
+          <motion.div
+            initial="hidden" whileInView="show" viewport={vp} variants={FR}
+            className="absolute group overflow-hidden"
+            style={{ left: 633, top: 235, width: 323, height: 450, borderRadius: "500px 500px 0 0" }}
+          >
+            <div
+              className="absolute inset-0 transition-[transform] duration-[900ms] group-hover:-translate-y-[10px] group-hover:scale-[1.06]"
+              style={{ background: "url(/assets/about-2.png) 50% 50%/139.319% 100% no-repeat", borderRadius: "500px 500px 0 0" }}
+            />
+          </motion.div>
+
+          {/* arch image 2 */}
+          <motion.div
+            initial="hidden" whileInView="show" viewport={vp} variants={FR} {...delay(0.14)}
+            className="absolute group overflow-hidden"
+            style={{ left: 972, top: 155, width: 323, height: 450, borderRadius: "500px 500px 0 0" }}
+          >
+            <div
+              className="absolute inset-0 transition-[transform] duration-[900ms] group-hover:-translate-y-[10px] group-hover:scale-[1.06]"
+              style={{ background: "url(/assets/about-1.png) 50% 50%/139.319% 100% no-repeat", borderRadius: "500px 500px 0 0" }}
+            />
+          </motion.div>
         </section>
 
-        {/* ============ DIVERSE ARTISTRY (GALLERY) ============ */}
-        <section id="gallery" data-screen-label="Diverse Artistry" style={S("position:relative;width:1440px;min-height:775px;overflow:hidden;background:rgb(251,248,241)")}>
-          <div style={S("position:absolute;left:299px;top:70px;width:843px;display:flex;flex-direction:column;align-items:center")}>
-            <E as="span" className="rv" css="font-family:'Inter',sans-serif;font-weight:600;font-size:12px;letter-spacing:1.8px;color:rgb(198,155,95)">DIVERSE ARTISTRY</E>
-            <E as="h2" className="rv" css="transition-delay:80ms;margin:10px 0 0;width:843px;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:44px;line-height:1.0;color:rgb(33,58,92)">A space for independent beauty &amp; wellness professionals.</E>
+        {/* ── DIVERSE ARTISTRY ───────────────────────── */}
+        <section id="gallery" className="relative overflow-hidden" style={{ width: 1440, minHeight: 775, background: "rgb(251,248,241)" }}>
+          <div className="absolute flex flex-col items-center" style={{ left: 299, top: 70, width: 843 }}>
+            <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU}
+              className="font-ui font-semibold text-[rgb(198,155,95)]" style={{ fontSize: 12, letterSpacing: 1.8 }}
+            >
+              DIVERSE ARTISTRY
+            </motion.span>
+            <motion.h2 initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.08)}
+              className="font-display font-semibold text-[rgb(33,58,92)] text-center"
+              style={{ margin: "10px 0 0", width: 843, fontSize: 46, lineHeight: 1.0 }}
+            >
+              A space for independent beauty &amp; wellness professionals.
+            </motion.h2>
           </div>
-          <div style={S("position:absolute;left:106px;top:227px;width:1229px;height:483px;display:flex;flex-direction:row;gap:16px;align-items:flex-start")}>
-            {/* tall left card */}
-            <E className="rv rv-s gallery-card" css="width:228px;height:483px;border-radius:32px;overflow:hidden;background:#fff;position:relative">
-              <E css="position:absolute;left:-5px;top:0;width:252px;height:488px;background:url(/assets/gallery-1.png) 41.808% 8.108%/634.711% 218.337% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
-              <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:52%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 24px")}>
-                <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Estheticians</span>
+
+          <div className="absolute flex gap-4 items-start" style={{ left: 106, top: 227, width: 1229, height: 483 }}>
+            {/* tall left */}
+            <motion.div initial="hidden" whileInView="show" viewport={vp} variants={FS}
+              className="gallery-card relative overflow-hidden flex-shrink-0 rounded-[32px]"
+              style={{ width: 228, height: 483, background: "#fff" }}
+            >
+              <div className="absolute transition-transform duration-[800ms] hover:scale-[1.07]" style={{ left: -5, top: 0, width: 252, height: 488, background: "url(/assets/gallery-1.png) 41.808% 8.108%/634.711% 218.337% no-repeat" }} />
+              <div className="card-overlay absolute bottom-0 left-0 right-0 z-[3] flex items-end justify-center" style={{ height: "52%", padding: "0 14px 24px", background: "linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%)" }}>
+                <span className="card-label font-accent font-normal text-white text-center" style={{ fontSize: 11, letterSpacing: 3 }}>Estheticians</span>
               </div>
-            </E>
-            <div style={S("width:985px;display:flex;flex-direction:column;gap:16px")}>
-              <div style={S("display:flex;flex-direction:row;gap:16px;align-items:center")}>
-                <E className="rv rv-s gallery-card" css="transition-delay:80ms;width:454px;height:231px;border-radius:32px;overflow:hidden;position:relative">
-                  <E css="position:absolute;left:-17px;top:-96px;width:471px;height:416px;background:url(/assets/gallery-2.png) 7.79% 7.154%/355.556% 268.766% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
-                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
-                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Hair Stylists</span>
-                  </div>
-                </E>
-                <E className="rv rv-s gallery-card" css="transition-delay:160ms;width:515px;height:231px;border-radius:32px;overflow:hidden;position:relative">
-                  <E css="position:absolute;left:0;top:-244px;width:567px;height:508px;background:url(/assets/gallery-2.png) 49.597% 81.944%/366.587% 272.34% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
-                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
-                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Colorists</span>
-                  </div>
-                </E>
+            </motion.div>
+
+            <div className="flex flex-col gap-4" style={{ width: 985 }}>
+              <div className="flex gap-4 items-center">
+                {[
+                  { w:454, h:231, bg:"url(/assets/gallery-2.png) 7.79% 7.154%/355.556% 268.766% no-repeat", iL:-17, iT:-96, iW:471, iH:416, label:"Hair Stylists", d:0.08 },
+                  { w:515, h:231, bg:"url(/assets/gallery-2.png) 49.597% 81.944%/366.587% 272.34% no-repeat",  iL:0,   iT:-244,iW:567, iH:508, label:"Colorists",    d:0.16 },
+                ].map(({ w, h, bg, iL, iT, iW, iH, label, d }) => (
+                  <motion.div key={label} initial="hidden" whileInView="show" viewport={vp} variants={FS} {...delay(d)}
+                    className="gallery-card relative overflow-hidden rounded-[32px]" style={{ width: w, height: h }}
+                  >
+                    <div className="absolute transition-transform duration-[800ms] hover:scale-[1.07]" style={{ left: iL, top: iT, width: iW, height: iH, background: bg }} />
+                    <div className="card-overlay absolute bottom-0 left-0 right-0 z-[3] flex items-end justify-center" style={{ height: "55%", padding: "0 14px 18px", background: "linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%)" }}>
+                      <span className="card-label font-accent font-normal text-white text-center" style={{ fontSize: 11, letterSpacing: 3 }}>{label}</span>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-              <div style={S("display:flex;flex-direction:row;gap:16px;align-items:flex-end")}>
-                <E className="rv rv-s gallery-card" css="transition-delay:120ms;width:406px;height:230px;border-radius:32px;overflow:hidden;position:relative">
-                  <E css="position:absolute;left:0;top:-89px;width:406px;height:339px;background:url(/assets/gallery-1.png) 16.764% 94.851%/447.813% 358.042% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
-                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
-                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Brow &amp; Lash Artists</span>
-                  </div>
-                </E>
-                <E className="rv rv-s gallery-card" css="transition-delay:200ms;width:233px;height:227px;border-radius:32px;overflow:hidden;position:relative">
-                  <E css="position:absolute;left:-10px;top:0;width:253px;height:227px;background:url(/assets/gallery-2.png) 90% 81.364%/378.325% 281.319% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
-                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
-                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Nail Artists</span>
-                  </div>
-                </E>
-                <E className="rv rv-s gallery-card" css="transition-delay:280ms;width:314px;height:231px;border-radius:32px;overflow:hidden;position:relative">
-                  <E css="position:absolute;left:-16px;top:-142px;width:392px;height:373px;background:url(/assets/gallery-2.png) 88.462% 8.602%/391.837% 274.531% no-repeat;transition:transform .8s cubic-bezier(.16,1,.3,1)" hover="transform:scale(1.07)"></E>
-                  <div className="card-overlay" style={S("position:absolute;bottom:0;left:0;right:0;height:55%;background:linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%);z-index:3;display:flex;align-items:flex-end;justify-content:center;padding:0 14px 18px")}>
-                    <span className="card-label" style={S("font-family:'Jost',sans-serif;font-weight:400;font-size:11px;letter-spacing:3px;color:#fff;text-align:center")}>Massage &amp; Wellness</span>
-                  </div>
-                </E>
+              <div className="flex gap-4 items-end">
+                {[
+                  { w:406, h:230, bg:"url(/assets/gallery-1.png) 16.764% 94.851%/447.813% 358.042% no-repeat", iL:0,   iT:-89,  iW:406, iH:339, label:"Brow & Lash Artists",  d:0.12 },
+                  { w:233, h:227, bg:"url(/assets/gallery-2.png) 90% 81.364%/378.325% 281.319% no-repeat",      iL:-10, iT:0,    iW:253, iH:227, label:"Nail Artists",         d:0.20 },
+                  { w:314, h:231, bg:"url(/assets/gallery-2.png) 88.462% 8.602%/391.837% 274.531% no-repeat",   iL:-16, iT:-142, iW:392, iH:373, label:"Massage & Wellness",   d:0.28 },
+                ].map(({ w, h, bg, iL, iT, iW, iH, label, d }) => (
+                  <motion.div key={label} initial="hidden" whileInView="show" viewport={vp} variants={FS} {...delay(d)}
+                    className="gallery-card relative overflow-hidden rounded-[32px]" style={{ width: w, height: h }}
+                  >
+                    <div className="absolute transition-transform duration-[800ms] hover:scale-[1.07]" style={{ left: iL, top: iT, width: iW, height: iH, background: bg }} />
+                    <div className="card-overlay absolute bottom-0 left-0 right-0 z-[3] flex items-end justify-center" style={{ height: "55%", padding: "0 14px 18px", background: "linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,0) 100%)" }}>
+                      <span className="card-label font-accent font-normal text-white text-center" style={{ fontSize: 11, letterSpacing: 3 }}>{label}</span>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
-        {/* ============ THE LUXYN DIFFERENCE ============ */}
-        <section id="difference" data-screen-label="Difference" style={S("position:relative;width:1440px;min-height:555px;overflow:hidden;background:rgb(244,238,225)")}>
-          <div style={S("position:absolute;left:270px;top:61px;width:900px;display:flex;flex-direction:column;align-items:center;gap:12px")}>
-            <E as="span" className="rv" css="font-family:'Jost',sans-serif;font-weight:600;font-size:13px;letter-spacing:4px;color:rgb(184,153,104)">THE LUXYN DIFFERENCE</E>
-            <E as="span" className="rv" css="transition-delay:80ms;font-family:'Cormorant Garamond',serif;font-weight:600;font-size:44px;line-height:1.0;color:rgb(33,58,92)">A sanctuary, not a rented room</E>
+        {/* ── THE LUXYN DIFFERENCE ───────────────────── */}
+        <section id="difference" className="relative overflow-hidden" style={{ width: 1440, minHeight: 555, background: "rgb(244,238,225)" }}>
+          <div className="absolute flex flex-col items-center gap-3" style={{ left: 270, top: 61, width: 900 }}>
+            <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU}
+              className="font-accent font-semibold text-[rgb(184,153,104)]" style={{ fontSize: 13, letterSpacing: 4 }}
+            >
+              THE LUXYN DIFFERENCE
+            </motion.span>
+            <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.08)}
+              className="font-display font-semibold text-[rgb(33,58,92)]" style={{ fontSize: 46, lineHeight: 1.0 }}
+            >
+              A sanctuary, not a rented room
+            </motion.span>
           </div>
-          <div style={S("position:absolute;left:120px;top:191px;width:1200px;display:flex;flex-direction:row;gap:24px;align-items:flex-start")}>
-            <E className="rv" css="width:282px;height:276px;border-radius:12px;background:rgb(252,250,244);box-shadow:inset 0 0 0 1px rgb(225,216,194);padding:32px 26px;display:flex;flex-direction:column;gap:14px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:inset 0 0 0 1px rgb(225,216,194),0 22px 44px rgba(33,58,92,.14)">
-              <span style={S("color:rgb(33,58,92)")}><svg width="32" height="34" viewBox="0 0 24 26" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M2 25V10a10 10 0 0 1 20 0v15"></path><circle cx="12" cy="11" r="1.2" fill="currentColor" stroke="none"></circle></svg></span>
-              <span style={S("font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;line-height:1.0;color:rgb(33,58,92)")}>Design-led suites</span>
-              <span style={S("opacity:.85;font-family:'Jost',sans-serif;font-weight:400;font-size:14.5px;line-height:1.5;color:rgb(22,38,60)")}>The most beautiful private suites in the category — finished to feel like a destination, not a cubicle.</span>
-            </E>
-            <E className="rv" css="transition-delay:90ms;width:282px;height:276px;border-radius:12px;background:rgb(252,250,244);box-shadow:inset 0 0 0 1px rgb(225,216,194);padding:32px 26px;display:flex;flex-direction:column;gap:14px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:inset 0 0 0 1px rgb(225,216,194),0 22px 44px rgba(33,58,92,.14)">
-              <span style={S("color:rgb(33,58,92)")}><svg width="32" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M4 20c0-8 8-15 17-15 0 9-7 17-15 17a2 2 0 0 1-2-2Z"></path><path d="M5 19C9 14 13 11 17 8"></path></svg></span>
-              <span style={S("font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;line-height:1.0;color:rgb(33,58,92)")}>Wellness under one roof</span>
-              <span style={S("opacity:.85;font-family:'Jost',sans-serif;font-weight:400;font-size:14.5px;line-height:1.5;color:rgb(22,38,60)")}>Hair, skin, nails, brows, massage and more — a full sensory experience for every client.</span>
-            </E>
-            <E className="rv" css="transition-delay:180ms;width:282px;height:276px;border-radius:12px;background:rgb(252,250,244);box-shadow:inset 0 0 0 1px rgb(225,216,194);padding:32px 26px;display:flex;flex-direction:column;gap:14px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:inset 0 0 0 1px rgb(225,216,194),0 22px 44px rgba(33,58,92,.14)">
-              <span style={S("color:rgb(33,58,92)")}><svg width="32" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg></span>
-              <span style={S("font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;line-height:1.0;color:rgb(33,58,92)")}>Independence, supported</span>
-              <span style={S("opacity:.85;font-family:'Jost',sans-serif;font-weight:400;font-size:14.5px;line-height:1.5;color:rgb(22,38,60)")}>Own your business and your hours. Lean on LUXYN for the front desk, upkeep, and marketing.</span>
-            </E>
-            <E className="rv" css="transition-delay:270ms;width:282px;height:276px;border-radius:12px;background:rgb(252,250,244);box-shadow:inset 0 0 0 1px rgb(225,216,194);padding:32px 26px;display:flex;flex-direction:column;gap:14px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:inset 0 0 0 1px rgb(225,216,194),0 22px 44px rgba(33,58,92,.14)">
-              <span style={S("color:rgb(33,58,92)")}><svg width="32" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><path d="M3 19h18"></path><path d="M5 19a7 7 0 0 1 14 0"></path><path d="M12 8V5"></path><circle cx="12" cy="4" r="1.1" fill="currentColor" stroke="none"></circle></svg></span>
-              <span style={S("font-family:'Cormorant Garamond',serif;font-weight:600;font-size:24px;line-height:1.0;color:rgb(33,58,92)")}>On-site care</span>
-              <span style={S("opacity:.85;font-family:'Jost',sans-serif;font-weight:400;font-size:14.5px;line-height:1.5;color:rgb(22,38,60)")}>A real person on site every day to welcome your clients and keep your space effortless.</span>
-            </E>
-          </div>
-        </section>
-
-        {/* ============ YOUR SUITE BANNER ============ */}
-        <section id="banner" data-screen-label="Banner" style={S("position:relative;width:1440px;height:550px;overflow:hidden;background:rgb(244,238,225);display:flex;align-items:center;justify-content:center")}>
-          <div style={S("position:absolute;left:0;top:-15%;width:1440px;height:130%;background:url(/assets/cta-bg.png) center/cover no-repeat")}></div>
-          <div style={S("position:absolute;inset:0;background:linear-gradient(0deg,rgb(20,35,59) 0%,rgba(45,79,127,.5) 50%,rgba(70,122,194,0) 100%)")}></div>
-          <div style={S("position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:24px;max-width:760px;text-align:center;padding:0 40px")}>
-            <E as="h2" className="rv" css="margin:0;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:72px;line-height:1.0;color:rgb(255,255,255)">Your suite. Your schedule. Your brand.</E>
-            <E as="p" className="rv" css="transition-delay:140ms;margin:0;max-width:610px;font-family:'Inter',sans-serif;font-weight:500;font-size:16px;line-height:1.5;color:rgb(255,220,164)">Create a space that feels like your own, serve clients with privacy, and grow your business inside a calm, elevated environment.</E>
+          <div className="absolute flex gap-6 items-start" style={{ left: 120, top: 191, width: 1200 }}>
+            {DIFF.map(({ icon, title, body }, i) => (
+              <motion.div
+                key={title}
+                initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(i * 0.09)}
+                className="flex flex-col gap-3.5 rounded-[12px] transition-[transform,box-shadow] duration-[400ms] cursor-default"
+                style={{ width: 282, height: 276, background: "rgb(252,250,244)", boxShadow: "inset 0 0 0 1px rgb(225,216,194)", padding: "32px 26px" }}
+                whileHover={{ y: -8, boxShadow: "inset 0 0 0 1px rgb(225,216,194), 0 22px 44px rgba(33,58,92,.14)" }}
+              >
+                <span className="text-[rgb(33,58,92)]">{icon}</span>
+                <span className="font-display font-semibold text-[rgb(33,58,92)]" style={{ fontSize: 24, lineHeight: 1.0 }}>{title}</span>
+                <span className="font-accent font-normal opacity-85 text-[rgb(22,38,60)]" style={{ fontSize: 14.5, lineHeight: 1.5 }}>{body}</span>
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        {/* ============ AMENITIES ============ */}
-        <section id="amenities" data-screen-label="Amenities" style={S("position:relative;width:1440px;height:835px;overflow:hidden;background:rgb(20,35,59);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:48px")}>
-          <div style={S("position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:1550px;height:120%;opacity:.5;background:url(/assets/amenities-illustration.png) center/cover no-repeat;pointer-events:none")}></div>
-          <div style={S("position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:16px")}>
-            <E as="span" className="rv" css="font-family:'Jost',sans-serif;font-weight:600;font-size:13px;letter-spacing:4px;color:rgb(184,153,104)">AMENITIES</E>
-            <E as="span" className="rv" css="transition-delay:80ms;width:448px;text-align:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:42px;line-height:1.0;color:rgb(255,255,255)">Designed around comfort, care, and craft.</E>
-          </div>
-          <div style={S("position:relative;z-index:2;width:1152px;display:grid;grid-template-columns:1fr 1fr 1fr;grid-auto-rows:250.78px;gap:24px")}>
-            <E className="rv" css="border-radius:32px;background:#fff;box-shadow:inset 0 0 0 1px rgba(196,198,207,.2);padding:40px;display:flex;flex-direction:column;gap:15px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:0 26px 50px rgba(0,0,0,.28)">
-              <span style={S("color:rgb(198,155,95)")}><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:500;font-size:14px;letter-spacing:1.4px;color:rgb(2,36,72)")}>24/7 SECURE ACCESS</span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:25.6px;color:rgb(67,71,78)")}>Your business, your hours. Complete autonomy with a state-of-the-art security system for peace of mind.</span>
-            </E>
-            <E className="rv" css="transition-delay:80ms;border-radius:32px;background:#fff;box-shadow:inset 0 0 0 1px rgba(196,198,207,.2);padding:40px;display:flex;flex-direction:column;gap:15px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:0 26px 50px rgba(0,0,0,.28)">
-              <span style={S("color:rgb(198,155,95)")}><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="4" y="3" width="16" height="18" rx="2"></rect><circle cx="12" cy="13" r="5"></circle><circle cx="7" cy="6.5" r="1" fill="currentColor" stroke="none"></circle></svg></span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:500;font-size:14px;letter-spacing:1.4px;color:rgb(2,36,72)")}>ON-SITE LAUNDRY</span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:25.6px;color:rgb(67,71,78)")}>Complimentary high-capacity laundry facilities designed to keep your workflow seamless and stress-free.</span>
-            </E>
-            <E className="rv" css="transition-delay:160ms;border-radius:32px;background:#fff;box-shadow:inset 0 0 0 1px rgba(196,198,207,.2);padding:40px;display:flex;flex-direction:column;gap:15px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:0 26px 50px rgba(0,0,0,.28)">
-              <span style={S("color:rgb(198,155,95)")}><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 9h12v5a5 5 0 0 1-10 0z"></path><path d="M17 10h2a2 2 0 0 1 0 5h-2"></path><path d="M8 4v2M11.5 3v2"></path></svg></span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:500;font-size:14px;letter-spacing:1.4px;color:rgb(2,36,72)")}>CLIENT LOUNGE</span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:25.6px;color:rgb(67,71,78)")}>A sophisticated waiting area with specialty coffee and refreshments to delight your guests from arrival.</span>
-            </E>
-            <E className="rv" css="transition-delay:120ms;border-radius:32px;background:#fff;box-shadow:inset 0 0 0 1px rgba(196,198,207,.2);padding:40px;display:flex;flex-direction:column;gap:15px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:0 26px 50px rgba(0,0,0,.28)">
-              <span style={S("color:rgb(198,155,95)")}><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 9a16 16 0 0 1 20 0"></path><path d="M5 12.5a11 11 0 0 1 14 0"></path><path d="M8.5 16a6 6 0 0 1 7 0"></path><circle cx="12" cy="19.5" r="1.1" fill="currentColor" stroke="none"></circle></svg></span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:500;font-size:14px;letter-spacing:1.4px;color:rgb(2,36,72)")}>HIGH-SPEED FIBER</span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:25.6px;color:rgb(67,71,78)")}>Dedicated enterprise-grade Wi-Fi for seamless booking, processing, and social media management.</span>
-            </E>
-            <E className="rv" css="transition-delay:200ms;border-radius:32px;background:#fff;box-shadow:inset 0 0 0 1px rgba(196,198,207,.2);padding:40px;display:flex;flex-direction:column;gap:15px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:0 26px 50px rgba(0,0,0,.28)">
-              <span style={S("color:rgb(198,155,95)")}><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"></path></svg></span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:500;font-size:14px;letter-spacing:1.4px;color:rgb(2,36,72)")}>DAILY COMMON CARE</span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:25.6px;color:rgb(67,71,78)")}>Professional cleaning of all shared areas ensures the facility always reflects your high standards.</span>
-            </E>
-            <E className="rv" css="transition-delay:280ms;border-radius:32px;background:#fff;box-shadow:inset 0 0 0 1px rgba(196,198,207,.2);padding:40px;display:flex;flex-direction:column;gap:15px;transition:transform .4s cubic-bezier(.16,1,.3,1),box-shadow .4s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px);box-shadow:0 26px 50px rgba(0,0,0,.28)">
-              <span style={S("color:rgb(198,155,95)")}><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 14c-2.2 0-4 1.8-4 5 3.2 0 5-1.8 5-4"></path><path d="M19 3l2 2-9.5 9.5-2-2z"></path></svg></span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:500;font-size:14px;letter-spacing:1.4px;color:rgb(2,36,72)")}>CUSTOM BRANDING</span>
-              <span style={S("font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:25.6px;color:rgb(67,71,78)")}>Paint and decorate your suite to match your brand&apos;s unique identity and professional aesthetic.</span>
-            </E>
+        {/* ── BANNER ─────────────────────────────────── */}
+        <section id="banner" className="relative overflow-hidden flex items-center justify-center" style={{ width: 1440, height: 550, background: "rgb(244,238,225)" }}>
+          <div className="absolute" style={{ left: 0, top: "-15%", width: 1440, height: "130%", background: "url(/assets/cta-bg.png) center/cover no-repeat" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(0deg,rgb(20,35,59) 0%,rgba(45,79,127,.5) 50%,rgba(70,122,194,0) 100%)" }} />
+          <div className="relative z-[2] flex flex-col items-center gap-6 text-center" style={{ maxWidth: 760, padding: "0 40px" }}>
+            <motion.h2 initial="hidden" whileInView="show" viewport={vp} variants={FU}
+              className="m-0 font-display font-bold text-white" style={{ fontSize: 72, lineHeight: 1.0 }}
+            >
+              Your suite. Your schedule. Your brand.
+            </motion.h2>
+            <motion.p initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.14)}
+              className="m-0 font-ui font-medium text-[rgb(255,220,164)]" style={{ maxWidth: 610, fontSize: 16, lineHeight: 1.5 }}
+            >
+              Create a space that feels like your own, serve clients with privacy, and grow your business inside a calm, elevated environment.
+            </motion.p>
           </div>
         </section>
 
-        {/* ============ FIND A PRO ============ */}
-        <section id="findpro" data-screen-label="Find a Pro" style={S("position:relative;width:1440px;min-height:756px;overflow:hidden;background:rgb(244,238,225);display:flex;align-items:center")}>
-          <E className="rv rv-l" css="position:absolute;left:144px;top:120px;width:516px;height:516px;border-radius:500px 500px 0 0;overflow:hidden;background:url(/assets/findpro-a.png) center/cover no-repeat;box-shadow:0 28px 60px rgba(20,35,59,.18);transition:transform .8s cubic-bezier(.16,1,.3,1),box-shadow .5s" hover="transform:translateY(-10px);box-shadow:0 40px 80px rgba(20,35,59,.28)"></E>
-          <E className="rv rv-l floaty" css="transition-delay:120ms;position:absolute;left:172px;top:81px;width:460px;height:555px;background:url(/assets/findpro-stylist.png) bottom center/contain no-repeat;filter:drop-shadow(0 24px 36px rgba(20,35,59,.32));transition:transform .7s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-8px) scale(1.02)"></E>
-          <div style={S("position:absolute;left:780px;top:250px;width:516px;display:flex;flex-direction:column;align-items:flex-start;gap:28px")}>
-            <E as="span" className="rv" css="font-family:'Inter',sans-serif;font-weight:600;font-size:12px;letter-spacing:1.8px;color:rgb(74,98,106)">FOR CLIENTS</E>
-            <E as="h2" className="rv" css="transition-delay:80ms;margin:0;width:516px;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:42px;line-height:1.0;color:rgb(2,36,72)">Looking for a professional?</E>
-            <E as="p" className="rv" css="transition-delay:160ms;margin:0;width:516px;font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:25.6px;color:rgb(67,71,78)">Explore independent beauty and wellness professionals working from LUXYN.</E>
-            <E className="rv" data-target="gallery" onClick={() => nav("gallery")} css="transition-delay:240ms;height:48px;border-radius:333px;background:rgb(20,35,59);display:flex;align-items:center;justify-content:center;padding:0 30px;cursor:pointer;transition:transform .35s,box-shadow .35s,background .35s,opacity 1.1s cubic-bezier(.16,1,.3,1)" hover="transform:translateY(-2px);box-shadow:0 14px 30px rgba(20,35,59,.32);background:rgb(30,50,80)">
-              <span style={S("font-family:'Inter',sans-serif;font-weight:700;font-size:13px;letter-spacing:.5px;color:#fff;white-space:nowrap")}>Find a Pro</span>
-            </E>
+        {/* ── AMENITIES ──────────────────────────────── */}
+        <section id="amenities" className="relative overflow-hidden flex flex-col items-center justify-center" style={{ width: 1440, height: 835, background: "rgb(20,35,59)", gap: 48 }}>
+          <div className="absolute opacity-50 pointer-events-none" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%)", width: 1550, height: "120%", background: "url(/assets/amenities-illustration.png) center/cover no-repeat" }} />
+          <div className="relative z-[2] flex flex-col items-center gap-4">
+            <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU}
+              className="font-accent font-semibold text-[rgb(184,153,104)]" style={{ fontSize: 13, letterSpacing: 4 }}
+            >
+              AMENITIES
+            </motion.span>
+            <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.08)}
+              className="font-display font-bold text-white text-center" style={{ width: 448, fontSize: 44, lineHeight: 1.0 }}
+            >
+              Designed around comfort, care, and craft.
+            </motion.span>
+          </div>
+          <div className="relative z-[2] grid" style={{ width: 1152, gridTemplateColumns: "1fr 1fr 1fr", gridAutoRows: "250.78px", gap: 24 }}>
+            {AMEN.map(({ icon, title, body }, i) => (
+              <motion.div
+                key={title}
+                initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(i * 0.08)}
+                className="flex flex-col gap-[15px] rounded-[32px] bg-white p-10 cursor-default"
+                style={{ boxShadow: "inset 0 0 0 1px rgba(196,198,207,.2)" }}
+                whileHover={{ y: -8, boxShadow: "0 26px 50px rgba(0,0,0,.28)" }}
+              >
+                <span className="text-[rgb(198,155,95)]">{icon}</span>
+                <span className="font-ui font-medium text-[rgb(2,36,72)]" style={{ fontSize: 14, letterSpacing: 1.4 }}>{title}</span>
+                <span className="font-ui font-normal text-[rgb(67,71,78)]" style={{ fontSize: 16, lineHeight: 1.6 }}>{body}</span>
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        {/* ============ READY CTA ============ */}
-        <section id="cta" data-screen-label="Ready CTA" style={S("position:relative;width:1440px;height:448px;overflow:hidden;background:rgb(20,35,59);display:flex;align-items:center;justify-content:center")}>
-          <div style={S("position:absolute;left:0;top:0;width:1440px;height:100%;opacity:.25;overflow:hidden;background:linear-gradient(180deg,rgb(20,35,59) 0%,rgb(55,96,161) 100%)")}>
-            <div style={S("position:absolute;left:50%;top:118%;width:1100px;height:1100px;margin-left:-550px;margin-top:-550px;border-radius:50%;border:1px solid rgba(255,255,255,.5)")}></div>
-            <div style={S("position:absolute;left:50%;top:118%;width:1450px;height:1450px;margin-left:-725px;margin-top:-725px;border-radius:50%;border:1px solid rgba(255,255,255,.42)")}></div>
-            <div style={S("position:absolute;left:50%;top:118%;width:1800px;height:1800px;margin-left:-900px;margin-top:-900px;border-radius:50%;border:1px solid rgba(255,255,255,.32)")}></div>
-            <div style={S("position:absolute;left:50%;top:118%;width:2150px;height:2150px;margin-left:-1075px;margin-top:-1075px;border-radius:50%;border:1px solid rgba(255,255,255,.22)")}></div>
+        {/* ── FIND A PRO ─────────────────────────────── */}
+        <section id="findpro" className="relative overflow-hidden flex items-center" style={{ width: 1440, minHeight: 756, background: "rgb(244,238,225)" }}>
+          <motion.div
+            initial="hidden" whileInView="show" viewport={vp} variants={FL}
+            className="absolute overflow-hidden"
+            style={{ left: 144, top: 120, width: 516, height: 516, borderRadius: "500px 500px 0 0", background: "url(/assets/findpro-a.png) center/cover no-repeat", boxShadow: "0 28px 60px rgba(20,35,59,.18)" }}
+            whileHover={{ y: -10, boxShadow: "0 40px 80px rgba(20,35,59,.28)" }}
+          />
+          <motion.div
+            initial="hidden" whileInView="show" viewport={vp} variants={FL} {...delay(0.12)}
+            className="absolute floaty"
+            style={{ left: 172, top: 81, width: 460, height: 555, background: "url(/assets/findpro-stylist.png) bottom center/contain no-repeat", filter: "drop-shadow(0 24px 36px rgba(20,35,59,.32))" }}
+            whileHover={{ y: -8, scale: 1.02 }}
+          />
+          <div className="absolute flex flex-col items-start" style={{ left: 780, top: 250, width: 516, gap: 28 }}>
+            <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU}
+              className="font-ui font-semibold text-[rgb(74,98,106)]" style={{ fontSize: 12, letterSpacing: 1.8 }}
+            >
+              FOR CLIENTS
+            </motion.span>
+            <motion.h2 initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.08)}
+              className="m-0 font-display font-bold text-[rgb(2,36,72)]" style={{ width: 516, fontSize: 44, lineHeight: 1.0 }}
+            >
+              Looking for a professional?
+            </motion.h2>
+            <motion.p initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.16)}
+              className="m-0 font-ui font-normal text-[rgb(67,71,78)]" style={{ width: 516, fontSize: 16, lineHeight: 1.6 }}
+            >
+              Explore independent beauty and wellness professionals working from LUXYN.
+            </motion.p>
+            <motion.button
+              initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.24)}
+              onClick={() => nav("gallery")}
+              className="h-[48px] px-8 rounded-full font-ui font-bold text-white cursor-pointer transition-[transform,box-shadow,background] duration-300 hover:-translate-y-0.5"
+              style={{ fontSize: 13, letterSpacing: .5, background: "rgb(20,35,59)" }}
+              whileHover={{ boxShadow: "0 14px 30px rgba(20,35,59,.32)" }}
+            >
+              Find a Pro
+            </motion.button>
           </div>
-          <div style={S("position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:24px;max-width:1176px;text-align:center;padding:0 40px")}>
-            <div style={S("display:flex;flex-direction:column;align-items:center;gap:16px")}>
-              <E as="span" className="rv" css="text-align:center;font-family:'Cormorant Garamond',serif;font-weight:700;font-size:42px;line-height:1.05;color:#fff">Ready to make LUXYN your new professional home?</E>
-              <E as="span" className="rv" css="transition-delay:80ms;text-align:center;font-family:'Inter',sans-serif;font-weight:400;font-size:16px;line-height:1.0;color:#fff">Book a private tour and explore available suites designed for your next chapter.</E>
+        </section>
+
+        {/* ── READY CTA ──────────────────────────────── */}
+        <section id="cta" className="relative overflow-hidden flex items-center justify-center" style={{ width: 1440, height: 448, background: "rgb(20,35,59)" }}>
+          <div className="absolute inset-0 opacity-25 overflow-hidden" style={{ background: "linear-gradient(180deg,rgb(20,35,59) 0%,rgb(55,96,161) 100%)" }}>
+            {[1100, 1450, 1800, 2150].map((s, i) => (
+              <div key={i} className="absolute rounded-full" style={{ left: "50%", top: "118%", width: s, height: s, marginLeft: -s / 2, marginTop: -s / 2, border: `1px solid rgba(255,255,255,${0.5 - i * 0.08})` }} />
+            ))}
+          </div>
+          <div className="relative z-[2] flex flex-col items-center gap-6 text-center" style={{ maxWidth: 1176, padding: "0 40px" }}>
+            <div className="flex flex-col items-center gap-4">
+              <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU}
+                className="font-display font-bold text-white" style={{ fontSize: 44, lineHeight: 1.05 }}
+              >
+                Ready to make LUXYN your new professional home?
+              </motion.span>
+              <motion.span initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.08)}
+                className="font-ui font-normal text-white" style={{ fontSize: 16 }}
+              >
+                Book a private tour and explore available suites designed for your next chapter.
+              </motion.span>
             </div>
-            <E className="rv" css="transition-delay:160ms;display:flex;flex-direction:row;gap:12px;align-items:center">
-              <E data-target="findpro" onClick={() => nav("findpro")} css="height:40px;border-radius:333px;background:rgb(194,160,107);display:flex;align-items:center;justify-content:center;padding:0 24px;cursor:pointer;transition:transform .35s,box-shadow .35s,background .35s" hover="transform:translateY(-2px);box-shadow:0 12px 26px rgba(194,160,107,.45);background:rgb(206,173,120)">
-                <span style={S("font-family:'Inter',sans-serif;font-weight:700;font-size:13px;color:rgb(20,35,59);white-space:nowrap")}>Lease a Suite</span>
-              </E>
-              <E data-target="gallery" onClick={() => nav("gallery")} css="height:40px;border-radius:333px;box-shadow:inset 0 0 0 1px rgb(194,160,107);display:flex;align-items:center;justify-content:center;padding:0 24px;cursor:pointer;transition:transform .35s,background .35s,box-shadow .35s" hover="transform:translateY(-2px);background:rgba(194,160,107,.14);box-shadow:inset 0 0 0 1px rgb(194,160,107),0 8px 20px rgba(194,160,107,.2)">
-                <span style={S("font-family:'Inter',sans-serif;font-weight:700;font-size:13px;color:rgb(194,160,107);white-space:nowrap")}>Book a Tour</span>
-              </E>
-            </E>
+            <motion.div initial="hidden" whileInView="show" viewport={vp} variants={FU} {...delay(0.16)} className="flex gap-3">
+              <button onClick={() => nav("findpro")} className={btnGold} style={{ background: "rgb(194,160,107)", color: "rgb(20,35,59)", fontFamily: "'Inter',sans-serif" }}>Lease a Suite</button>
+              <button onClick={() => nav("gallery")}  className={btnOutline} style={{ boxShadow: "inset 0 0 0 1px rgb(194,160,107)", color: "rgb(194,160,107)", fontFamily: "'Inter',sans-serif" }}>Book a Tour</button>
+            </motion.div>
           </div>
         </section>
 
-        {/* ============ FOOTER ============ */}
-        <section id="footer" data-screen-label="Footer" style={S("position:relative;width:1440px;min-height:624px;overflow:hidden;background:linear-gradient(180deg,rgb(26,45,76) 49.52%,rgb(62,120,197) 100%)")}>
-          <div style={S("position:absolute;left:429px;top:35px;width:583px;display:flex;flex-direction:column;align-items:center;gap:26px")}>
-            <div data-target="hero" onClick={() => nav("hero")} style={S("width:194px;height:63px;cursor:pointer;background:url(/assets/logo.png) 50% 66.194%/146.25% 455.339% no-repeat")}></div>
-            <div style={S("display:flex;flex-direction:row;gap:48px;align-items:center")}>
-              <E as="span" data-target="gallery" onClick={() => nav("gallery")} css="font-family:'Jost',sans-serif;font-size:14.5px;color:#fff;cursor:pointer;white-space:nowrap;transition:color .3s" hover="color:rgb(194,160,107)">Suites</E>
-              <E as="span" data-target="difference" onClick={() => nav("difference")} css="font-family:'Jost',sans-serif;font-size:14.5px;color:#fff;cursor:pointer;white-space:nowrap;transition:color .3s" hover="color:rgb(194,160,107)">For Professionals</E>
-              <E as="span" data-target="findpro" onClick={() => nav("findpro")} css="font-family:'Jost',sans-serif;font-size:14.5px;color:#fff;cursor:pointer;white-space:nowrap;transition:color .3s" hover="color:rgb(194,160,107)">Find a Pro</E>
-              <E as="span" data-target="amenities" onClick={() => nav("amenities")} css="font-family:'Jost',sans-serif;font-size:14.5px;color:#fff;cursor:pointer;white-space:nowrap;transition:color .3s" hover="color:rgb(194,160,107)">Amenities</E>
-              <E as="span" data-target="cta" onClick={() => nav("cta")} css="font-family:'Jost',sans-serif;font-size:14.5px;color:#fff;cursor:pointer;white-space:nowrap;transition:color .3s" hover="color:rgb(194,160,107)">Contact</E>
+        {/* ── FOOTER ─────────────────────────────────── */}
+        <section id="footer" className="relative overflow-hidden" style={{ width: 1440, minHeight: 624, background: "linear-gradient(180deg,rgb(26,45,76) 49.52%,rgb(62,120,197) 100%)" }}>
+          <div className="absolute flex flex-col items-center" style={{ left: 429, top: 35, width: 583, gap: 26 }}>
+            <button onClick={() => nav("hero")} className="cursor-pointer" style={{ width: 194, height: 63, background: "url(/assets/logo.png) 50% 66.194%/146.25% 455.339% no-repeat" }} />
+            <div className="flex items-center" style={{ gap: 48 }}>
+              {[
+                { label: "Suites",            id: "gallery"    },
+                { label: "For Professionals", id: "difference" },
+                { label: "Find a Pro",        id: "findpro"    },
+                { label: "Amenities",         id: "amenities"  },
+                { label: "Contact",           id: "cta"        },
+              ].map(({ label, id }) => (
+                <button key={label} onClick={() => nav(id)}
+                  className="font-accent text-white cursor-pointer whitespace-nowrap transition-colors duration-300 hover:text-champagne"
+                  style={{ fontSize: 14.5 }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
-          <div style={S("position:absolute;left:0;top:223px;width:1440px;height:1px;background:rgb(138,146,157)")}></div>
-          <E className="rv" css="position:absolute;left:0;top:268px;width:1440px;height:301px;background:url(/assets/logo.png) 50% 60.271%/146.25% 699.668% no-repeat"></E>
-          <div style={S("position:absolute;left:80px;top:569px;width:1280px;display:flex;flex-direction:row;justify-content:space-between;align-items:flex-start")}>
-            <div style={S("display:flex;flex-direction:row;gap:24px")}>
-              <E as="span" css="font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,.85);cursor:pointer;transition:color .3s" hover="color:#fff">Privacy Policy</E>
-              <E as="span" css="font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,.85);cursor:pointer;transition:color .3s" hover="color:#fff">Terms of Service</E>
-              <E as="span" css="font-family:'Inter',sans-serif;font-size:14px;color:rgba(255,255,255,.85);cursor:pointer;transition:color .3s" hover="color:#fff">Cookies Settings</E>
+          <div className="absolute left-0 w-full h-px" style={{ top: 223, background: "rgb(138,146,157)" }} />
+          <motion.div
+            initial="hidden" whileInView="show" viewport={vp} variants={FI}
+            className="absolute"
+            style={{ left: 0, top: 268, width: 1440, height: 301, background: "url(/assets/logo.png) 50% 60.271%/146.25% 699.668% no-repeat" }}
+          />
+          <div className="absolute flex justify-between items-start" style={{ left: 80, top: 569, width: 1280 }}>
+            <div className="flex gap-6">
+              {["Privacy Policy", "Terms of Service", "Cookies Settings"].map(l => (
+                <button key={l} className="font-ui text-white/85 transition-colors duration-300 hover:text-white cursor-pointer" style={{ fontSize: 14 }}>{l}</button>
+              ))}
             </div>
-            <span style={S("font-family:'Inter',sans-serif;font-size:16px;color:#fff")}>© 2026 LUXYN. All rights reserved.</span>
+            <span className="font-ui text-white" style={{ fontSize: 16 }}>© 2026 LUXYN. All rights reserved.</span>
           </div>
         </section>
 
-      </div>
+      </div>{/* /pageRoot */}
     </div>
+  );
+}
+
+function HamburgerSVG() {
+  return (
+    <svg width="22" height="16" viewBox="0 0 22 16" fill="rgb(255,255,255)">
+      <path d="M1.571 0H9.429a1.6 1.6 0 0 1 0 3.2H1.571a1.6 1.6 0 0 1 0-3.2ZM12.571 12.8h7.858a1.6 1.6 0 0 1 0 3.2h-7.858a1.6 1.6 0 0 1 0-3.2ZM1.571 6.4h18.858a1.6 1.6 0 0 1 0 3.2H1.571a1.6 1.6 0 0 1 0-3.2Z"/>
+    </svg>
   );
 }
