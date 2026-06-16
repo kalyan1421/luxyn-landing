@@ -116,8 +116,7 @@ export default function Landing() {
     };
   }, [heroH]);
 
-  const navVisible = scrollY > heroH - 90;
-  const showTop    = scrollY > 900;
+  const showTop = scrollY > 900;
 
   return (
     <div className="relative overflow-x-hidden">
@@ -125,39 +124,6 @@ export default function Landing() {
       {/* ── progress bar ─────────────────────────────── */}
       <div id="prog" className="fixed top-0 left-0 h-[3px] bg-champagne z-[120]" style={{ width: 0, transition: "width .1s linear" }} />
 
-      {/* ── sticky navbar ────────────────────────────── */}
-      <div
-        id="navbar"
-        className="fixed top-0 left-0 w-full z-[110] transition-[transform,background,box-shadow] duration-500"
-        style={{
-          transform:    navVisible ? "translateY(0)" : "translateY(-100%)",
-          background:   navVisible ? "rgba(18,31,53,.92)" : "transparent",
-          backdropFilter: navVisible ? "blur(12px)" : "none",
-          boxShadow:    navVisible ? "0 10px 30px rgba(0,0,0,.28)" : "none",
-        }}
-      >
-        <div className="relative flex items-center justify-between h-[72px] px-10 max-w-[1440px] mx-auto">
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="w-[50px] h-[50px] rounded-full flex items-center justify-center transition-[background] duration-300 hover:bg-white/20"
-            style={{ background: "rgba(255,255,255,.1)", backdropFilter: "blur(10px)", boxShadow: "inset 0 0 0 1px rgba(255,248,248,.3)" }}
-          >
-            <HamburgerSVG />
-          </button>
-          <button
-            onClick={() => nav("hero")}
-            className="absolute left-1/2 -translate-x-1/2 w-[150px] h-[44px]"
-            style={{ background: "url(/assets/logo.png) 51.02% 65.351%/119.522% 416.667% no-repeat" }}
-          />
-          <button
-            onClick={() => nav("cta")}
-            className={btnGold}
-            style={{ background: "rgb(194,160,107)", color: "rgb(20,35,59)", fontFamily: "'Inter',sans-serif" }}
-          >
-            Lease a Suite
-          </button>
-        </div>
-      </div>
 
       {/* ── glassmorphism menu overlay ────────────────── */}
       <AnimatePresence>
@@ -180,19 +146,19 @@ export default function Landing() {
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="absolute top-3 left-[5%] right-[5%] rounded-[28px] px-14 py-8"
               style={{
-                background: "rgba(25,40,65,0.52)",
-                backdropFilter: "blur(25px)",
-                WebkitBackdropFilter: "blur(25px)",
-                border: "1px solid rgba(255,255,255,.1)",
-                boxShadow: "0 8px 48px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08)",
+                background: "rgba(255,255,255,0.08)",
+                backdropFilter: "blur(48px) saturate(1.6) brightness(1.1)",
+                WebkitBackdropFilter: "blur(48px) saturate(1.6) brightness(1.1)",
+                border: "1px solid rgba(255,255,255,.22)",
+                boxShadow: "0 8px 64px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(255,255,255,.06)",
               }}
             >
               <button
                 onClick={() => setMenuOpen(false)}
                 className="w-[50px] h-[50px] rounded-full flex items-center justify-center transition-[background] duration-300 hover:bg-white/10"
-                style={{ background: "rgba(255,255,255,.08)" }}
+                style={{ background: "rgba(255,255,255,.12)", border: "1px solid rgba(255,255,255,.2)" }}
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(255,255,255,.8)" strokeWidth="1.8" strokeLinecap="round">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(255,255,255,.9)" strokeWidth="1.8" strokeLinecap="round">
                   <path d="M1 1 L13 13 M13 1 L1 13"/>
                 </svg>
               </button>
