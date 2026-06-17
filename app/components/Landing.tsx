@@ -835,19 +835,47 @@ function MobileLanding({ nav, onMenu }: { nav: (id: string) => void; onMenu: () 
           <motion.h2 {...rev} className="font-display font-semibold text-center mx-auto" style={{ margin: "10px auto 0", maxWidth: 420, color: "rgb(33,58,92)", fontSize: "clamp(28px,8.4vw,38px)", lineHeight: 1.05 }}>
             A space for independent beauty &amp; wellness professionals.
           </motion.h2>
-          <div className="columns-2 gap-3 mt-10">
-            {M_GAL.map(({ label, img, ar, crop }) => (
-              <motion.div
-                key={label} {...rev}
-                className="relative overflow-hidden rounded-[22px] mb-3 break-inside-avoid"
-                style={{ aspectRatio: ar }}
-              >
-                <div className="absolute inset-0" style={{ background: `url(${img}) ${crop} no-repeat` }} />
-                <div className="absolute inset-x-0 bottom-0 flex items-end justify-center" style={{ height: "55%", padding: "0 10px 14px", background: "linear-gradient(to top,rgba(28,18,8,.82) 0%,rgba(28,18,8,0) 100%)" }}>
-                  <span className="font-accent text-white text-center" style={{ fontSize: 11, letterSpacing: 2.4 }}>{label}</span>
-                </div>
-              </motion.div>
-            ))}
+          {/* 2-col grid with explicit row-span to balance column heights and eliminate empty space */}
+          <div className="mt-10" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {/* Row 1-2: left = tall Estheticians, right = stacked Colorists + Hair Stylists */}
+            <motion.div {...rev} className="relative overflow-hidden rounded-[22px]" style={{ gridRow: "1 / 3", minHeight: 320 }}>
+              <div className="absolute inset-0" style={{ background: `url(/assets/gallery-1.png) 41.808% 8.108%/634.711% 218.337% no-repeat` }} />
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-center" style={{ height: "50%", padding: "0 10px 16px", background: "linear-gradient(to top,rgba(28,18,8,.82) 0%,rgba(28,18,8,0) 100%)" }}>
+                <span className="font-accent text-white text-center" style={{ fontSize: 11, letterSpacing: 2.4 }}>Estheticians</span>
+              </div>
+            </motion.div>
+            <motion.div {...rev} className="relative overflow-hidden rounded-[22px]" style={{ minHeight: 150 }}>
+              <div className="absolute inset-0" style={{ background: `url(/assets/gallery-2.png) 49.597% 81.944%/366.587% 272.34% no-repeat` }} />
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-center" style={{ height: "55%", padding: "0 10px 14px", background: "linear-gradient(to top,rgba(28,18,8,.82) 0%,rgba(28,18,8,0) 100%)" }}>
+                <span className="font-accent text-white text-center" style={{ fontSize: 11, letterSpacing: 2.4 }}>Colorists</span>
+              </div>
+            </motion.div>
+            <motion.div {...rev} className="relative overflow-hidden rounded-[22px]" style={{ minHeight: 150 }}>
+              <div className="absolute inset-0" style={{ background: `url(/assets/gallery-2.png) 7.79% 7.154%/355.556% 268.766% no-repeat` }} />
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-center" style={{ height: "55%", padding: "0 10px 14px", background: "linear-gradient(to top,rgba(28,18,8,.82) 0%,rgba(28,18,8,0) 100%)" }}>
+                <span className="font-accent text-white text-center" style={{ fontSize: 11, letterSpacing: 2.4 }}>Hair Stylists</span>
+              </div>
+            </motion.div>
+
+            {/* Row 3-4: left = stacked Brow & Lash + Nail Artists, right = tall Massage & Wellness */}
+            <motion.div {...rev} className="relative overflow-hidden rounded-[22px]" style={{ minHeight: 150 }}>
+              <div className="absolute inset-0" style={{ background: `url(/assets/gallery-1.png) 16.764% 94.851%/447.813% 358.042% no-repeat` }} />
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-center" style={{ height: "55%", padding: "0 10px 14px", background: "linear-gradient(to top,rgba(28,18,8,.82) 0%,rgba(28,18,8,0) 100%)" }}>
+                <span className="font-accent text-white text-center" style={{ fontSize: 11, letterSpacing: 2.4 }}>Brow & Lash Artists</span>
+              </div>
+            </motion.div>
+            <motion.div {...rev} className="relative overflow-hidden rounded-[22px]" style={{ gridRow: "3 / 5", minHeight: 320 }}>
+              <div className="absolute inset-0" style={{ background: `url(/assets/gallery-2.png) 88.462% 8.602%/391.837% 274.531% no-repeat` }} />
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-center" style={{ height: "50%", padding: "0 10px 16px", background: "linear-gradient(to top,rgba(28,18,8,.82) 0%,rgba(28,18,8,0) 100%)" }}>
+                <span className="font-accent text-white text-center" style={{ fontSize: 11, letterSpacing: 2.4 }}>Massage & Wellness</span>
+              </div>
+            </motion.div>
+            <motion.div {...rev} className="relative overflow-hidden rounded-[22px]" style={{ minHeight: 150 }}>
+              <div className="absolute inset-0" style={{ background: `url(/assets/gallery-2.png) 90% 81.364%/378.325% 281.319% no-repeat` }} />
+              <div className="absolute inset-x-0 bottom-0 flex items-end justify-center" style={{ height: "55%", padding: "0 10px 14px", background: "linear-gradient(to top,rgba(28,18,8,.82) 0%,rgba(28,18,8,0) 100%)" }}>
+                <span className="font-accent text-white text-center" style={{ fontSize: 11, letterSpacing: 2.4 }}>Nail Artists</span>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
