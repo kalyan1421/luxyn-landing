@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" updated="June 2026">
+    <LegalLayout title="Privacy Policy" updated="June 2026" current="/privacy">
       <p>
         This Privacy Policy explains how {site.name} (&ldquo;we&rdquo;, &ldquo;us&rdquo;) collects,
         uses, and safeguards your information when you visit our website or enquire about leasing a suite.

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <LegalLayout title="Cookie Policy" updated="June 2026">
+    <LegalLayout title="Cookie Policy" updated="June 2026" current="/cookies">
       <p>
         This Cookie Policy explains how {site.name} uses cookies and similar technologies when you visit
         our website.

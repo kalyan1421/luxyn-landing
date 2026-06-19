@@ -450,49 +450,49 @@ export default function Landing() {
           <div className="w-full max-w-[1229px] px-6 lg:px-12 xl:px-0 flex flex-col lg:flex-row gap-4 lg:gap-6 xl:gap-4">
             {/* tall left */}
             <motion.div initial="hidden" whileInView="show" viewport={vp} variants={FS}
-              className="gallery-card relative overflow-hidden flex-shrink-0 rounded-[32px] w-full h-[280px] lg:h-auto lg:w-[200px] xl:w-[228px]"
+              className="gallery-card relative overflow-hidden flex-shrink-0 rounded-[32px] w-full h-[220px] lg:h-auto lg:w-[200px] xl:w-[228px]"
               style={{ background: "#fff" }}
             >
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full" style={{ aspectRatio: "228/483" }}>
                 <div className="absolute transition-transform duration-[800ms] hover:scale-[1.07]" style={{ left: "-2.19%", top: "0%", width: "110.52%", height: "101.03%", background: "url(/assets/gallery-1.png) 41.808% 8.108%/634.711% 218.337% no-repeat" }} />
               </div>
               <div className="card-overlay absolute inset-0 z-[3] flex items-end justify-center rounded-[32px]" style={{ padding: "0 14px 32px", background: "linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,.25) 100%)" }}>
-                <span className="card-label font-display font-medium text-white text-center" style={{ fontSize: 22, letterSpacing: 4 }}>Brow & Lash Artists</span>
+                <span className="card-label font-display font-medium text-white text-center text-[15px] sm:text-[22px] tracking-[2px] sm:tracking-[4px]">Brow & Lash Artists</span>
               </div>
             </motion.div>
 
             <div className="flex flex-col gap-4 flex-1">
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="grid grid-cols-2 sm:flex sm:flex-row gap-4">
                 {[
                   { smFlex: "sm:grow-[454] sm:basis-0", smAsp: "sm:aspect-[454/231]", asp: "454/231", bg:"url(/assets/gallery-2.png) 7.79% 7.154%/355.556% 268.766% no-repeat", iL:"-3.74%", iT:"-41.56%", iW:"103.74%", iH:"180.09%", label:"Hair Stylists", d:0.08 },
                   { smFlex: "sm:grow-[515] sm:basis-0", smAsp: "sm:aspect-[515/231]", asp: "515/231", bg:"url(/assets/gallery-2.png) 49.597% 81.944%/366.587% 272.34% no-repeat",  iL:"0%",   iT:"-105.63%",iW:"110.1%", iH:"219.91%", label:"Nail Artists",    d:0.16 },
                 ].map(({ smFlex, smAsp, asp, bg, iL, iT, iW, iH, label, d }) => (
                   <motion.div key={label} initial="hidden" whileInView="show" viewport={vp} variants={FS} {...delay(d)}
-                    className={`gallery-card relative overflow-hidden rounded-[32px] w-full h-[280px] sm:h-auto ${smAsp} ${smFlex}`}
+                    className={`gallery-card relative overflow-hidden rounded-[32px] w-full h-[200px] sm:h-auto ${smAsp} ${smFlex}`}
                   >
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full" style={{ aspectRatio: asp }}>
                       <div className="absolute transition-transform duration-[800ms] hover:scale-[1.07]" style={{ left: iL, top: iT, width: iW, height: iH, background: bg }} />
                     </div>
                     <div className="card-overlay absolute inset-0 z-[3] flex items-end justify-center rounded-[32px]" style={{ padding: "0 14px 32px", background: "linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,.25) 100%)" }}>
-                      <span className="card-label font-display font-medium text-white text-center" style={{ fontSize: 22, letterSpacing: 4 }}>{label}</span>
+                      <span className="card-label font-display font-medium text-white text-center text-[15px] sm:text-[22px] tracking-[2px] sm:tracking-[4px]">{label}</span>
                     </div>
                   </motion.div>
                 ))}
               </div>
-              <div className="flex flex-col md:flex-row gap-4 items-stretch lg:items-end">
+              <div className="grid grid-cols-2 md:flex md:flex-row gap-4 items-stretch lg:items-end">
                 {[
-                  { mdFlex: "md:grow-[406] md:basis-0", mdAsp: "md:aspect-[406/230]", asp: "406/230", bg:"url(/assets/gallery-1.png) 16.764% 94.851%/447.813% 358.042% no-repeat", iL:"0%",   iT:"-38.7%",  iW:"100%", iH:"147.39%", label:"Massage Therapists",  d:0.12 },
-                  { mdFlex: "md:grow-[233] md:basis-0", mdAsp: "md:aspect-[233/227]", asp: "233/227", bg:"url(/assets/gallery-2.png) 90% 81.364%/378.325% 281.319% no-repeat",      iL:"-4.29%", iT:"0%",    iW:"108.58%", iH:"100%", label:"Wellness Practitioners",         d:0.20 },
-                  { mdFlex: "md:grow-[314] md:basis-0", mdAsp: "md:aspect-[314/231]", asp: "314/231", bg:"url(/assets/gallery-2.png) 88.462% 8.602%/391.837% 274.531% no-repeat",   iL:"-5.1%", iT:"-61.47%", iW:"124.84%", iH:"161.47%", label:"Estheticians",   d:0.28 },
-                ].map(({ mdFlex, mdAsp, asp, bg, iL, iT, iW, iH, label, d }) => (
+                  { span: "",            mdFlex: "md:grow-[406] md:basis-0", mdAsp: "md:aspect-[406/230]", asp: "406/230", bg:"url(/assets/gallery-1.png) 16.764% 94.851%/447.813% 358.042% no-repeat", iL:"0%",   iT:"-38.7%",  iW:"100%", iH:"147.39%", label:"Massage Therapists",  d:0.12 },
+                  { span: "",            mdFlex: "md:grow-[233] md:basis-0", mdAsp: "md:aspect-[233/227]", asp: "233/227", bg:"url(/assets/gallery-2.png) 90% 81.364%/378.325% 281.319% no-repeat",      iL:"-4.29%", iT:"0%",    iW:"108.58%", iH:"100%", label:"Wellness Practitioners",         d:0.20 },
+                  { span: "col-span-2",  mdFlex: "md:grow-[314] md:basis-0", mdAsp: "md:aspect-[314/231]", asp: "314/231", bg:"url(/assets/gallery-2.png) 88.462% 8.602%/391.837% 274.531% no-repeat",   iL:"-5.1%", iT:"-61.47%", iW:"124.84%", iH:"161.47%", label:"Estheticians",   d:0.28 },
+                ].map(({ span, mdFlex, mdAsp, asp, bg, iL, iT, iW, iH, label, d }) => (
                   <motion.div key={label} initial="hidden" whileInView="show" viewport={vp} variants={FS} {...delay(d)}
-                    className={`gallery-card relative overflow-hidden rounded-[32px] w-full h-[280px] md:h-auto ${mdAsp} ${mdFlex}`}
+                    className={`gallery-card relative overflow-hidden rounded-[32px] w-full h-[200px] md:h-auto ${span} ${mdAsp} ${mdFlex}`}
                   >
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full" style={{ aspectRatio: asp }}>
                       <div className="absolute transition-transform duration-[800ms] hover:scale-[1.07]" style={{ left: iL, top: iT, width: iW, height: iH, background: bg }} />
                     </div>
                     <div className="card-overlay absolute inset-0 z-[3] flex items-end justify-center rounded-[32px]" style={{ padding: "0 14px 32px", background: "linear-gradient(to top,rgba(28,18,8,.85) 0%,rgba(28,18,8,.25) 100%)" }}>
-                      <span className="card-label font-display font-medium text-white text-center" style={{ fontSize: 22, letterSpacing: 4 }}>{label}</span>
+                      <span className="card-label font-display font-medium text-white text-center text-[15px] sm:text-[22px] tracking-[2px] sm:tracking-[4px]">{label}</span>
                     </div>
                   </motion.div>
                 ))}

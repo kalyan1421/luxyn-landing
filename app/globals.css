@@ -181,15 +181,43 @@ a:focus-visible, button:focus-visible {
   font-family: 'Cormorant Garamond', serif;
   font-weight: 600;
   color: rgb(2,36,72);
-  font-size: 26px;
+  font-size: 27px;
   line-height: 1.2;
-  margin: 40px 0 12px;
+  margin: 42px 0 14px;
+  padding-top: 18px;
+  border-top: 1px solid rgb(232,224,205);
 }
-.legal-prose p { font-size: 16px; line-height: 1.7; margin: 0 0 16px; }
-.legal-prose ul { margin: 0 0 16px; padding-left: 22px; }
-.legal-prose li { font-size: 16px; line-height: 1.7; margin: 0 0 8px; }
-.legal-prose a { color: rgb(180,150,90); text-decoration: underline; }
-.legal-prose strong { color: rgb(2,36,92); }
+/* first heading sits flush — no divider above it */
+.legal-prose > h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.legal-prose p { font-size: 16px; line-height: 1.75; margin: 0 0 16px; }
+/* lead paragraph — slightly larger, sets the tone */
+.legal-prose > p:first-child { font-size: 17.5px; line-height: 1.7; color: rgb(45,52,64); }
+.legal-prose ul { margin: 0 0 16px; padding-left: 0; list-style: none; }
+.legal-prose li {
+  position: relative;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0 0 10px;
+  padding-left: 26px;
+}
+.legal-prose li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 0.62em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgb(194,160,107);
+}
+.legal-prose a {
+  color: rgb(160,128,72);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color .2s ease;
+}
+.legal-prose a:hover { color: rgb(120,94,48); }
+.legal-prose strong { color: rgb(2,36,92); font-weight: 600; }
 
 /* honor reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
