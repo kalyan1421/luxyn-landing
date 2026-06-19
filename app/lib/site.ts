@@ -26,21 +26,21 @@ export const site = {
   //  Replace with the real LUXYN business details. These feed the footer,
   //  the contact section, AND the SEO/JSON-LD structured data, so getting
   //  them right matters for both customers and search engines.
-  //  Checklist:  [ ] email   [ ] phone + phoneHref   [ ] full address
+  //  Checklist:  [ ] email   [x] phone + phoneHref   [x] full address
   //              [ ] social handles   [ ] formEndpoint (see below)
   // ════════════════════════════════════════════════════════════════════
 
   /** Contact details — surface in the footer + JSON-LD structured data. */
   contact: {
     email: "hello@luxynstudios.com", // TODO PLACEHOLDER — real inbox that monitors leads
-    phone: "+1 (555) 012-3456", // TODO PLACEHOLDER — display format
-    phoneHref: "+15550123456", // TODO PLACEHOLDER — same number, digits + leading "+" only, for tel:
+    phone: "+1 737-287-7396", // display format
+    phoneHref: "+17372877396", // same number, digits + leading "+" only, for tel:
     address: {
-      street: "100 Atelier Way", // TODO PLACEHOLDER
-      locality: "Beverly Hills", // TODO PLACEHOLDER — city
-      region: "CA", // TODO PLACEHOLDER — state / region
-      postalCode: "90210", // TODO PLACEHOLDER
-      country: "US", // TODO PLACEHOLDER — ISO country code
+      street: "14300 Ronald Reagan Blvd, Building 8",
+      locality: "Leander", // city
+      region: "TX", // state / region
+      postalCode: "78641",
+      country: "US", // ISO country code
     },
   },
 
