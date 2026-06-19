@@ -23,7 +23,8 @@ a dedicated mobile layout, and hover micro-interactions.
 | `app/components/LegalLayout.tsx` | Shared chrome for the privacy / terms / cookies pages |
 | `app/lib/site.ts` | **Single source of truth** for domain, business contact details, socials, and the form endpoint — replace the `PLACEHOLDER` values before launch |
 | `app/layout.tsx` | Root layout + full SEO metadata (Open Graph, Twitter, robots, icons) + `LocalBusiness` JSON-LD |
-| `app/robots.ts` / `app/sitemap.ts` | Generated `robots.txt` and `sitemap.xml` |
+| `public/robots.txt` | Static `robots.txt` (per-bot allow rules, private-path disallows) |
+| `app/sitemap.ts` | Generated `sitemap.xml` |
 | `app/{privacy,terms,cookies}/page.tsx` | Legal pages (placeholder copy) |
 | `app/not-found.tsx` | Branded 404 |
 | `app/globals.css` | Ported `<style>` block (marquee / floaty keyframes, glass menu, gallery hover, CSS scroll-reveal, form fields, skip-link, legal prose) + Google Fonts |
