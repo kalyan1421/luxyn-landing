@@ -63,11 +63,8 @@ export const metadata: Metadata = {
     },
   },
   manifest: "/manifest.webmanifest",
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: site.logo,
-  },
+  // Icons are provided by file conventions: app/icon.svg, app/apple-icon.png,
+  // app/favicon.ico — Next emits the <link> tags automatically.
   // Search-console ownership tags — only emitted once a token is set in site.ts.
   ...((site.verification.google || site.verification.bing)
     ? {
