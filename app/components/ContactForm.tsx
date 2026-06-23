@@ -293,7 +293,7 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
             id={`${uid}-phone`} name="phone" type="tel" autoComplete="tel" inputMode="tel"
             value={fields.phone} onChange={set("phone")}
             aria-invalid={!!errors.phone} aria-describedby={errors.phone ? `${uid}-phone-err` : undefined}
-            className={fieldCls(!!errors.phone)} placeholder="+91 98765 43210"
+            className={fieldCls(!!errors.phone)} placeholder="(512) 555-0199"
           />
         </Field>
       </div>
