@@ -49,7 +49,7 @@ Browser form ──POST──▶ Worker ┤
    Copy the printed URL, e.g. `https://luxyn-contact.<your-subdomain>.workers.dev`.
 
 7. **Point the site at it** — paste that URL into
-   [`app/lib/site.ts`](../app/lib/site.ts) → `contactEndpoint`, then rebuild and
+   [`app/_lib/site.ts`](../app/_lib/site.ts) → `contactEndpoint`, then rebuild and
    redeploy the site.
 
 ## Optional: spam protection (Cloudflare Turnstile)
@@ -59,7 +59,7 @@ privacy-friendly CAPTCHA):
 
 1. In the Cloudflare dashboard → **Turnstile**, create a widget for
    `luxynstudios.com`. You get a **site key** (public) and a **secret key**.
-2. Paste the **site key** into [`app/lib/site.ts`](../app/lib/site.ts) →
+2. Paste the **site key** into [`app/_lib/site.ts`](../app/_lib/site.ts) →
    `turnstileSiteKey`, then rebuild the site. The widget now renders in the form.
 3. Set the **secret key** on the Worker and redeploy:
    ```bash

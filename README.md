@@ -18,14 +18,16 @@ a dedicated mobile layout, and hover micro-interactions.
 
 | Path | What it is |
 | --- | --- |
-| `app/components/Landing.tsx` | The whole page — desktop canvas + dedicated mobile layout, with the design's inline styles transcribed verbatim and framer-motion reveals |
-| `app/components/ContactForm.tsx` | Accessible lease/tour enquiry form (validation, submit states, honeypot); POSTs to the endpoint in `site.ts` |
-| `app/components/LegalLayout.tsx` | Shared chrome for the privacy / terms / cookies pages |
-| `app/lib/site.ts` | **Single source of truth** for domain, business contact details, socials, and the form endpoint — replace the `PLACEHOLDER` values before launch |
+| `app/_components/Landing.tsx` | The whole page — desktop canvas + dedicated mobile layout, with the design's inline styles transcribed verbatim and framer-motion reveals |
+| `app/_components/ContactForm.tsx` | Accessible lease/tour enquiry form (validation, submit states, honeypot); POSTs to the endpoint in `site.ts` |
+| `app/_components/LegalLayout.tsx` | Shared chrome for the privacy / terms / cookies pages |
+| `app/_lib/site.ts` | **Single source of truth** for domain, business contact details, socials, and the form endpoint — replace the `PLACEHOLDER` values before launch |
 | `app/layout.tsx` | Root layout + full SEO metadata (Open Graph, Twitter, robots, icons) + `LocalBusiness` JSON-LD |
 | `public/robots.txt` | Static `robots.txt` (per-bot allow rules, private-path disallows) |
 | `app/sitemap.ts` | Generated `sitemap.xml` |
-| `app/{privacy,terms,cookies}/page.tsx` | Legal pages (placeholder copy) |
+| `app/(legal)/{privacy,terms,cookies}/page.tsx` | Legal pages (placeholder copy); route group does not affect URLs |
+| `app/(marketing)/` | Public marketing routes; route group does not affect URLs |
+| `app/(feeds)/` | Static machine-readable feed routes such as `/facts.json` and `/llms.txt` |
 | `app/not-found.tsx` | Branded 404 |
 | `app/globals.css` | Ported `<style>` block (marquee / floaty keyframes, glass menu, gallery hover, CSS scroll-reveal, form fields, skip-link, legal prose) + Google Fonts |
 | `public/assets/` | All design imagery |
@@ -34,7 +36,7 @@ a dedicated mobile layout, and hover micro-interactions.
 
 ## Before launch — replace placeholders
 
-All site-wide values live in [`app/lib/site.ts`](app/lib/site.ts). Search it for
+All site-wide values live in [`app/_lib/site.ts`](app/_lib/site.ts). Search it for
 `PLACEHOLDER` and set the real values:
 
 1. **`url`** — your production domain (used for canonical URLs, the sitemap, and Open Graph).
@@ -45,7 +47,7 @@ All site-wide values live in [`app/lib/site.ts`](app/lib/site.ts). Search it for
    Worker, then paste its URL here. Until it's set, the form shows a friendly
    "email us directly" message instead of failing silently.
 
-Also review the placeholder legal copy in `app/{privacy,terms,cookies}/page.tsx`
+Also review the placeholder legal copy in `app/(legal)/{privacy,terms,cookies}/page.tsx`
 with your own counsel.
 
 ## Local development

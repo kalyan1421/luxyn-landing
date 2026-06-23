@@ -20,5 +20,5 @@ BRAND_PHONE = "+1 737-287-7396"
 #
 # Optional spam protection — Cloudflare Turnstile. When this secret is set, the
 # Worker verifies the token sent by the form (and rejects requests without one).
-# Pair it with `turnstileSiteKey` in app/lib/site.ts.
+# Pair it with `turnstileSiteKey` in app/_lib/site.ts.
 #   npx wrangler secret put TURNSTILE_SECRET

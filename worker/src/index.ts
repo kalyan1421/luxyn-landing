@@ -65,7 +65,7 @@ const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
  * Bulletproof, table-based HTML that survives Gmail / Outlook / Apple Mail:
  * inline styles only, web-safe fonts (Georgia for the serif display, Arial for
  * body), no external CSS or background images. Brand palette — navy #142337,
- * champagne #C2A06B, cream #F3ECDC. Static brand facts mirror app/lib/site.ts. */
+ * champagne #C2A06B, cream #F3ECDC. Static brand facts mirror app/_lib/site.ts. */
 const BRAND = {
   name: "LUXYN",
   tagline: "Private, design-led salon & wellness suites",

@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { Cormorant_Garamond, EB_Garamond, Inter, Jost } from "next/font/google";
 import "./globals.css";
-import { site, fullAddress } from "./lib/site";
-import { faqs, contentDates } from "./lib/content";
+import { site, fullAddress } from "./_lib/site";
+import { faqs, contentDates } from "./_lib/content";
 
 /* Self-hosted via next/font — no render-blocking <link> to Google, automatic
  * `font-display: swap`, and size-adjusted fallbacks that cut layout shift.
