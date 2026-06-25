@@ -3,16 +3,17 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { NAV, scrollToId } from "../_lib/nav";
+import { NAV, BLOG_LINK, scrollToId, SCROLL_TARGET_KEY } from "../_lib/nav";
 
 const btnGold =
   "h-[40px] px-6 rounded-full font-bold text-[13px] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_26px_rgba(194,160,107,.45)] cursor-pointer";
 
 /**
  * Site-wide header — the glass menu overlay + sticky navbar. Shared by the home
- * page and the legal pages. Section links are real /#anchor hrefs: on the home
- * page they smooth-scroll (no reload); from any other page they navigate home
- * and the home page scrolls to the section on load.
+ * page, the section SEO pages and the legal pages. The menu drives the home-page
+ * scroll experience: on the home page links smooth-scroll to the section; from
+ * any other page they navigate home (the href is "/") and hand off the target
+ * section via sessionStorage so Landing scrolls to it on arrival.
  */
 export default function SiteHeader() {
   const pathname = usePathname();
@@ -32,17 +33,17 @@ export default function SiteHeader() {
     };
   }, []);
 
-  /** Anchor links: smooth-scroll when already on the home page; otherwise let
-   *  the browser follow the /#anchor href to the home page. */
-  const onAnchor = (e: React.MouseEvent, anchor: string) => {
+  /** Menu links: smooth-scroll on the home page; from elsewhere, store the
+   *  target section and let the browser follow the "/" href, where Landing reads
+   *  the hand-off and scrolls to it. */
+  const onNav = (e: React.MouseEvent, id: string) => {
     const wasOpen = menuOpen;
     setMenuOpen(false);
     if (onHome) {
       e.preventDefault();
-      window.setTimeout(() => {
-        scrollToId(anchor);
-        history.replaceState(null, "", `/#${anchor}`);
-      }, wasOpen ? 60 : 0);
+      window.setTimeout(() => scrollToId(id), wasOpen ? 60 : 0);
+    } else {
+      try { sessionStorage.setItem(SCROLL_TARGET_KEY, id); } catch { /* storage blocked */ }
     }
   };
 
@@ -50,6 +51,15 @@ export default function SiteHeader() {
     if (onHome) {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  /** Primary CTA: scroll to the contact section on the home page; otherwise let
+   *  the browser navigate to the dedicated /contact page (which has the form). */
+  const onContactCta = (e: React.MouseEvent) => {
+    if (onHome) {
+      e.preventDefault();
+      scrollToId("contact");
     }
   };
 
@@ -93,17 +103,27 @@ export default function SiteHeader() {
                 </svg>
               </button>
               <nav className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 sm:gap-y-6 gap-x-12 mt-6 sm:mt-0">
-                {NAV.map(({ label, anchor }) => (
+                {NAV.map(({ label, id }) => (
                   <a
                     key={label}
-                    href={`/#${anchor}`}
-                    onClick={e => onAnchor(e, anchor)}
+                    href="/"
+                    onClick={e => onNav(e, id)}
                     className="font-display text-left transition-opacity duration-300 hover:opacity-100 text-[22px] sm:text-[26px]"
                     style={{ color: "rgb(225,216,194)", opacity: 0.9 }}
                   >
                     {label}
                   </a>
                 ))}
+                {/* Blog is a real route, not a home-page scroll target — link
+                    straight to it and just close the menu. */}
+                <a
+                  href={BLOG_LINK.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="font-display text-left transition-opacity duration-300 hover:opacity-100 text-[22px] sm:text-[26px]"
+                  style={{ color: "rgb(225,216,194)", opacity: 0.9 }}
+                >
+                  {BLOG_LINK.label}
+                </a>
               </nav>
             </motion.div>
           </motion.div>
@@ -138,21 +158,26 @@ export default function SiteHeader() {
             href="/"
             onClick={onLogo}
             aria-label="LUXYN — home"
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-opacity hover:opacity-80 scale-[0.6] sm:scale-[0.8] md:scale-100"
-            style={{ width: 265, height: 76, background: "url(/assets/logo.png) 51.02% 65.351%/119.522% 416.667% no-repeat" }}
-          />
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-opacity hover:opacity-80"
+          >
+            <img
+              src="/assets/logo.svg"
+              alt="LUXYN"
+              className="h-7 sm:h-9 md:h-11 w-auto"
+            />
+          </a>
 
           <a
-            href="/#contact"
-            onClick={e => onAnchor(e, "contact")}
+            href="/contact"
+            onClick={onContactCta}
             className={`${btnGold} hidden md:flex items-center shrink-0`}
             style={{ background: "rgb(194,160,107)", color: "rgb(20,35,59)", fontFamily: "var(--font-inter), sans-serif" }}
           >
             LEASE A SUITE
           </a>
           <a
-            href="/#contact"
-            onClick={e => onAnchor(e, "contact")}
+            href="/contact"
+            onClick={onContactCta}
             aria-label="Lease a suite"
             className="md:hidden flex items-center justify-center w-[44px] h-[44px] rounded-full shrink-0"
             style={{ background: "rgb(194,160,107)", color: "rgb(20,35,59)" }}

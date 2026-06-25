@@ -3,7 +3,8 @@ import Script from "next/script";
 import { Cormorant_Garamond, EB_Garamond, Inter, Jost } from "next/font/google";
 import "./globals.css";
 import { site, fullAddress } from "./_lib/site";
-import { faqs, contentDates } from "./_lib/content";
+import CookieConsent from "./_components/CookieConsent";
+import { CONSENT_KEY, CONSENT_VERSION } from "./_lib/consent";
 
 /* Self-hosted via next/font — no render-blocking <link> to Google, automatic
  * `font-display: swap`, and size-adjusted fallbacks that cut layout shift.
@@ -108,9 +109,13 @@ export const viewport: Viewport = {
 };
 
 /* ── Structured data (JSON-LD) ──────────────────────────────────────────────
- * One connected @graph so Google can resolve Organization ↔ WebSite ↔ WebPage
- * ↔ LocalBusiness by @id. Optional fields (geo, opening hours, verification)
- * are only included once their real values are set in site.ts. */
+ * SITE-WIDE nodes only — Organization, WebSite, and the LocalBusiness — since
+ * these describe the business and apply to every URL. Page-specific nodes
+ * (WebPage, BreadcrumbList, FAQPage, Review) are emitted by the page that
+ * actually renders that content (home page, section pages, blog, /faq), so the
+ * markup always matches what's visible — a Google structured-data requirement.
+ * Optional fields (geo, opening hours, ratings, verification) are only included
+ * once their real values are set in site.ts. */
 const orgId = `${site.url}/#organization`;
 const siteId = `${site.url}/#website`;
 const businessId = `${site.url}/#localbusiness`;
@@ -152,17 +157,6 @@ const jsonLd = {
       publisher: { "@id": orgId },
     },
     {
-      "@type": "WebPage",
-      "@id": `${site.url}/#webpage`,
-      url: `${site.url}/`,
-      name: site.title,
-      description: site.description,
-      inLanguage: "en-US",
-      isPartOf: { "@id": siteId },
-      about: { "@id": businessId },
-      primaryImageOfPage: `${site.url}${site.ogImage}`,
-    },
-    {
       "@type": "HealthAndBeautyBusiness",
       "@id": businessId,
       name: site.name,
@@ -183,6 +177,15 @@ const jsonLd = {
       parentOrganization: { "@id": orgId },
       ...(sameAs.length ? { sameAs } : {}),
       ...(site.business.openingHours.length ? { openingHours: site.business.openingHours } : {}),
+      ...(site.business.aggregateRating.reviewCount > 0 && site.business.aggregateRating.ratingValue
+        ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: site.business.aggregateRating.ratingValue,
+              reviewCount: site.business.aggregateRating.reviewCount,
+            },
+          }
+        : {}),
       ...(site.business.geo.latitude && site.business.geo.longitude
         ? {
             geo: {
@@ -206,40 +209,6 @@ const jsonLd = {
         },
       },
     },
-    {
-      "@type": "BreadcrumbList",
-      "@id": `${site.url}/#breadcrumb`,
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${site.url}/` },
-      ],
-    },
-    {
-      // FAQ rich results + a clean source for AI answer engines. Mirrors the
-      // on-page FAQ exactly (Google requires the markup match visible content).
-      "@type": "FAQPage",
-      "@id": `${site.url}/#faq`,
-      isPartOf: { "@id": siteId },
-      mainEntity: faqs.map(({ q, a }) => ({
-        "@type": "Question",
-        name: q,
-        datePublished: contentDates.published,
-        dateModified: contentDates.updated,
-        acceptedAnswer: { "@type": "Answer", text: a },
-      })),
-    },
-    {
-      // Customer testimonial shown on the page, marked up as a Review of the
-      // business. NOTE: no numeric rating is asserted here because the
-      // testimonial carries none — to earn star snippets, wire a real
-      // AggregateRating sourced from genuine customer ratings (e.g. Google).
-      "@type": "Review",
-      "@id": `${site.url}/#review-sarah-j`,
-      itemReviewed: { "@id": businessId },
-      author: { "@type": "Person", name: "Sarah J." },
-      reviewBody:
-        "Luxyn has completely transformed how my clients perceive my brand.",
-      publisher: { "@id": orgId },
-    },
   ],
 };
 
@@ -251,6 +220,31 @@ export default function RootLayout({
   return (
     <html lang="en" className={fontVars} suppressHydrationWarning>
       <head>
+        {/* Consent Mode default — a plain inline script in <head> so it runs
+            synchronously before gtag.js loads: GA starts with analytics_storage
+            denied, then we grant it only if the visitor has already opted in
+            (stored choice). The banner flips it live thereafter. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('consent', 'default', {
+                analytics_storage: 'denied',
+                ad_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied',
+                wait_for_update: 500
+              });
+              try {
+                var c = JSON.parse(localStorage.getItem('${CONSENT_KEY}'));
+                if (c && c.v === ${CONSENT_VERSION} && c.analytics) {
+                  gtag('consent', 'update', { analytics_storage: 'granted' });
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         {/* Hero background is a CSS background-image, so the browser can't
             discover it until stylesheets parse. Preload it at high priority to
             cut LCP — it's the largest above-the-fold paint. */}
@@ -264,7 +258,10 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <CookieConsent />
+      </body>
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
         strategy="afterInteractive"

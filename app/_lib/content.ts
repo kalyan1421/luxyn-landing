@@ -4,6 +4,7 @@
  * here, so the rich-result markup can never drift from what the user sees
  * (a Google requirement for FAQ/▸ rich results).
  */
+import type { Metadata } from "next";
 
 /** Content freshness stamps — surfaced to humans ("Last updated") and to AI
  *  answer engines via schema dateModified, llms.txt, and facts.json. AI
@@ -12,7 +13,7 @@
  *  deterministic. */
 export const contentDates = {
   published: "2026-06-18",
-  updated: "2026-06-22",
+  updated: "2026-06-25",
 } as const;
 
 /* ── FAQ ──────────────────────────────────────────────────────────────────
@@ -21,6 +22,10 @@ export const contentDates = {
  * exactly the format AI answer engines (ChatGPT, Perplexity, AI Overviews)
  * lift from. Keep answers self-contained — one question, one clear answer. */
 export const faqs = [
+  {
+    q: "What is LUXYN?",
+    a: "LUXYN is a private salon and wellness suite leasing studio in Leander, TX. Independent beauty and wellness professionals — stylists, estheticians, nail and lash artists, and massage therapists — lease their own lockable suite and run it as their own studio, while LUXYN handles the building, amenities, and upkeep.",
+  },
   {
     q: "What is a salon suite?",
     a: "A salon suite is a private, lockable room that an independent beauty or wellness professional leases as their own studio. You get your own dedicated space to serve clients — instead of renting a chair in a shared, open salon — while LUXYN handles the building, amenities, and upkeep.",
@@ -78,6 +83,10 @@ export type SeoPage = {
   homeAnchor: string;
   /** Primary call-to-action shown at the foot of the page. */
   cta: { label: string; href: string };
+  /** Hero image (in /public/assets) — shown as an upright arched frame in the
+   *  hero band. Must be a real portrait/interior photo (not a sprite sheet or
+   *  illustration), since it's shown un-cropped-at-the-top in a 4:5 frame. */
+  image: string;
 };
 
 export const seoPages: SeoPage[] = [
@@ -86,7 +95,7 @@ export const seoPages: SeoPage[] = [
     navLabel: "Salon Suites",
     title: "Private Salon Suites for Rent in Leander, TX",
     description:
-      "Lease a private, design-led salon suite in Leander, TX. Own your hours, your brand, and your client experience in an elevated space built for independent beauty professionals.",
+      "Lease a private, design-led salon suite in Leander, TX. Own your hours, your brand, and your client experience in a space built for independent beauty pros.",
     kicker: "PRIVATE SUITES",
     h1: "Private salon suites for rent in Leander, TX",
     intro: [
@@ -101,13 +110,14 @@ export const seoPages: SeoPage[] = [
     ],
     homeAnchor: "philosophy",
     cta: { label: "Lease a suite", href: "/contact" },
+    image: "/assets/about-1.webp",
   },
   {
     slug: "amenities",
     navLabel: "Amenities",
     title: "Salon Suite Amenities in Leander, TX",
     description:
-      "Every LUXYN suite includes 24/7 secure access, high-speed fiber Wi-Fi, on-site laundry, a styled client lounge, daily common-area care, and custom branding — designed around comfort, care, and craft.",
+      "Every LUXYN suite in Leander, TX includes 24/7 secure access, fiber Wi-Fi, on-site laundry, a styled client lounge, daily cleaning, and custom branding.",
     kicker: "AMENITIES",
     h1: "Salon suite amenities designed around comfort, care, and craft",
     intro: [
@@ -123,13 +133,14 @@ export const seoPages: SeoPage[] = [
     ],
     homeAnchor: "amenities",
     cta: { label: "Book a tour", href: "/contact" },
+    image: "/assets/about-2.webp",
   },
   {
     slug: "gallery",
     navLabel: "Gallery",
-    title: "Salon Suites for Every Beauty & Wellness Professional",
+    title: "Salon Suites for Beauty & Wellness Pros in Leander, TX",
     description:
-      "From hair stylists and colorists to nail artists, estheticians, brow & lash artists, and massage therapists — LUXYN suites in Leander, TX are home to diverse independent artistry.",
+      "From hair stylists and colorists to nail artists, estheticians, brow & lash artists and massage therapists — LUXYN suites in Leander, TX host diverse artistry.",
     kicker: "DIVERSE ARTISTRY",
     h1: "A space for independent beauty & wellness professionals",
     intro: [
@@ -145,13 +156,14 @@ export const seoPages: SeoPage[] = [
     ],
     homeAnchor: "gallery",
     cta: { label: "Lease a suite", href: "/contact" },
+    image: "/assets/findpro-b.webp",
   },
   {
     slug: "find-a-pro",
     navLabel: "Find a Pro",
     title: "Find a Beauty or Wellness Professional in Leander, TX",
     description:
-      "Looking for a stylist, nail artist, esthetician, or massage therapist near Leander, TX? Discover independent beauty and wellness professionals working from LUXYN.",
+      "Looking for a stylist, nail artist, esthetician, or massage therapist near Leander, TX? Discover independent beauty & wellness pros working from LUXYN.",
     kicker: "FOR CLIENTS",
     h1: "Find a beauty or wellness professional in Leander, TX",
     intro: [
@@ -165,13 +177,14 @@ export const seoPages: SeoPage[] = [
     ],
     homeAnchor: "findpro",
     cta: { label: "Explore the gallery", href: "/gallery" },
+    image: "/assets/findpro-a.webp",
   },
   {
     slug: "contact",
     navLabel: "Contact",
-    title: "Contact — Lease a Suite or Book a Tour in Leander, TX",
+    title: "Lease a Suite or Book a Tour in Leander, TX",
     description:
-      "Get in touch with LUXYN in Leander, TX to reserve your private salon suite or book a tour. Email, call, or send an enquiry and our team will arrange your visit.",
+      "Get in touch with LUXYN in Leander, TX to reserve your private salon suite or book a tour. Email, call, or send an enquiry and we'll arrange your visit.",
     kicker: "GET IN TOUCH",
     h1: "Contact LUXYN in Leander, TX",
     intro: [
@@ -179,6 +192,66 @@ export const seoPages: SeoPage[] = [
     ],
     points: [],
     homeAnchor: "contact",
-    cta: { label: "Reserve your suite", href: "/#contact" },
+    cta: { label: "Reserve your suite", href: "/contact" },
+    image: "/assets/about-2.webp",
+  },
+  {
+    slug: "for-professionals",
+    navLabel: "For Professionals",
+    title: "Salon Suites for Independent Beauty Pros in Leander, TX",
+    description:
+      "A sanctuary, not a rented room. See why independent beauty & wellness pros choose LUXYN's private, design-led salon suites in Leander, TX.",
+    kicker: "THE LUXYN DIFFERENCE",
+    h1: "A sanctuary, not a rented room",
+    intro: [
+      "LUXYN gives independent beauty and wellness professionals more than four walls — a curated, design-led environment built to elevate the client experience and support how you grow.",
+      "You own your business, your hours, and your brand. We handle the building, the amenities, the front desk, and the upkeep, so you can focus entirely on your craft.",
+    ],
+    points: [
+      { title: "Design-led suites", body: "The most beautiful private suites in the category — finished to feel like a destination, not a cubicle." },
+      { title: "Wellness under one roof", body: "Hair, skin, nails, brows, massage and more — a full sensory experience for every client." },
+      { title: "Independence, supported", body: "Own your business and your hours. Lean on LUXYN for the front desk, upkeep, and marketing." },
+      { title: "On-site care", body: "A real person on site every day to welcome your clients and keep your space effortless." },
+    ],
+    homeAnchor: "difference",
+    cta: { label: "Lease a suite", href: "/contact" },
+    image: "/assets/about-1.webp",
+  },
+  {
+    slug: "faq",
+    navLabel: "FAQ",
+    title: "Salon Suite Rental FAQ — Leander, TX",
+    description:
+      "Common questions about renting a private salon or wellness suite at LUXYN in Leander, TX — what's included, pricing, who can lease, and how to book a tour.",
+    kicker: "QUESTIONS & ANSWERS",
+    h1: "Renting a salon suite in Leander, TX",
+    intro: [
+      "Everything you need to know about leasing a private salon or wellness suite at LUXYN — what's included, who it's for, and how to get started.",
+    ],
+    points: [],
+    homeAnchor: "faq",
+    cta: { label: "Book a tour", href: "/contact" },
+    image: "/assets/findpro-a.webp",
   },
 ];
+
+/** Build the per-page Metadata for a section route from its SeoPage entry — each
+ *  page gets its own title, description, OpenGraph and a self-canonical URL, and
+ *  is indexable so search engines can rank each topic independently. */
+export function sectionMetadata(slug: string): Metadata {
+  const p = seoPages.find(x => x.slug === slug);
+  if (!p) throw new Error(`sectionMetadata: unknown slug "${slug}"`);
+  const path = `/${p.slug}`;
+  return {
+    title: p.title,
+    description: p.description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "website",
+      title: p.title,
+      description: p.description,
+      url: path,
+    },
+    robots: { index: true, follow: true },
+  };
+}

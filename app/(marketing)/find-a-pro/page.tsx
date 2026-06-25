@@ -1,18 +1,12 @@
-import type { Metadata } from "next";
-import SectionRedirect from "../../_components/SectionRedirect";
-import { seoPages } from "../../_lib/content";
+import SeoSectionPage from "../../_components/SeoSectionPage";
+import { seoPages, sectionMetadata } from "../../_lib/content";
+
+// Dedicated, indexable SEO page for this section (own title, description, H1 and
+// content; self-canonical). The home page keeps its single-scroll overview.
+export const metadata = sectionMetadata("find-a-pro");
 
 const page = seoPages.find((p) => p.slug === "find-a-pro")!;
 
-// Deep-link entry route — redirects to the matching home-page section, so it is
-// canonical to "/" and kept out of the index (the home page is the real page).
-export const metadata: Metadata = {
-  title: page.title,
-  description: page.description,
-  alternates: { canonical: "/" },
-  robots: { index: false, follow: true },
-};
-
 export default function Page() {
-  return <SectionRedirect anchor={page.homeAnchor} label={page.navLabel} />;
+  return <SeoSectionPage page={page} />;
 }

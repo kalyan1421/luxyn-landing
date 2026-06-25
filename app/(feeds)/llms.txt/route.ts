@@ -1,5 +1,6 @@
 import { site, fullAddress } from "../../_lib/site";
 import { seoPages, faqs, contentDates } from "../../_lib/content";
+import { blogPosts } from "../../_lib/blog";
 
 /**
  * /llms.txt — the llms.txt standard (llmstxt.org): a concise, curated map of
@@ -11,14 +12,28 @@ export const dynamic = "force-static";
 
 function build(): string {
   const u = site.url;
-  // The site is a single page; these are its sections, addressable via #anchors.
+  // The site is a single page; these are its sections, each with a clean URL.
   const sectionLines = seoPages
-    .map(p => `- [${p.navLabel}](${u}/#${p.homeAnchor}): ${p.description}`)
+    .map(p => `- [${p.navLabel}](${u}/${p.slug}): ${p.description}`)
     .join("\n");
 
   const faqLines = faqs
     .map(f => `- **${f.q}** ${f.a}`)
     .join("\n");
+
+  const blogLines = blogPosts
+    .map(p => `- [${p.title}](${u}/blog/${p.slug}): ${p.description}`)
+    .join("\n");
+
+  // Specific, citation-ready facts — only included once real values are set in
+  // site.ts (empty strings are dropped). AI answer engines lift concrete numbers.
+  const f = site.business.facts;
+  const concreteFactLines = [
+    f.suiteCount && `- Suites: ${f.suiteCount} private salon & wellness suites`,
+    f.suiteSizeRange && `- Suite size: ${f.suiteSizeRange}`,
+    f.leaseTerms && `- Lease terms: ${f.leaseTerms}`,
+    f.yearEstablished && `- Established: ${f.yearEstablished}`,
+  ].filter(Boolean).join("\n");
 
   return `# LUXYN — Private Salon & Wellness Suites in Leander, TX
 
@@ -35,7 +50,7 @@ LUXYN leases private, design-led salon and wellness suites to independent beauty
 - Phone: ${site.contact.phone}
 - Suite amenities: 24/7 secure access, high-speed fiber Wi-Fi, on-site laundry, client lounge, daily common-area cleaning, custom suite branding
 - Lease model: professionals lease a private, lockable suite and keep full ownership of their business, schedule, and pricing
-- How to start: book a private tour or reserve a suite via the contact page
+${concreteFactLines ? concreteFactLines + "\n" : ""}- How to start: book a private tour or reserve a suite via the contact page
 
 ## Sections (single-page site)
 - [Home](${u}/): ${site.description}
@@ -43,6 +58,9 @@ ${sectionLines}
 
 ## Frequently asked questions
 ${faqLines}
+
+## Blog — guides for independent beauty & wellness pros
+${blogLines}
 
 ## Legal
 - [Privacy Policy](${u}/privacy)

@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { site } from "../_lib/site";
 import { seoPages } from "../_lib/content";
-import { LEGAL, YEAR, VELVO_URL, scrollToId } from "../_lib/nav";
+import { LEGAL, YEAR, VELVO_URL, BLOG_LINK } from "../_lib/nav";
+import { openCookiePreferences } from "../_lib/consent";
 
 /* Social glyphs (24×24, filled). Keyed by the social handle in site.ts so any
    profile added there renders automatically — unknown keys are skipped. */
@@ -39,21 +40,13 @@ function SocialLinks() {
 }
 
 /**
- * Site-wide footer — shared by the home page and the legal pages. Section links
- * are /#anchor hrefs that smooth-scroll on the home page and navigate-then-
- * scroll from elsewhere, so the footer behaves identically on every page.
+ * Site-wide footer — shared by every page. Unlike the header menu (which drives
+ * the home-page scroll), the footer's section links point at the dedicated /slug
+ * SEO pages, giving each focused page a crawlable internal link.
  */
 export default function SiteFooter() {
   const pathname = usePathname();
   const onHome = pathname === "/";
-
-  const onAnchor = (e: React.MouseEvent, anchor: string) => {
-    if (onHome) {
-      e.preventDefault();
-      scrollToId(anchor);
-      history.replaceState(null, "", `/#${anchor}`);
-    }
-  };
 
   const onLogo = (e: React.MouseEvent) => {
     if (onHome) {
@@ -67,16 +60,22 @@ export default function SiteFooter() {
       <div className="flex flex-col items-center z-[2] gap-8 px-6">
         <a href="/" onClick={onLogo} aria-label="LUXYN — home" className="cursor-pointer transition-opacity hover:opacity-80 scale-[0.8] sm:scale-100" style={{ width: 265, height: 76, background: "url(/assets/logo.png) 51.02% 65.351%/119.522% 416.667% no-repeat" }} />
 
-        {/* In-page section links — crawlable /#anchor hrefs that smooth-scroll. */}
+        {/* Section links — each points at its dedicated /slug SEO page. */}
         <nav aria-label="LUXYN sections" className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4 sm:gap-10">
-          {seoPages.map(({ slug, navLabel, homeAnchor }) => (
-            <a key={slug} href={`/#${homeAnchor}`} onClick={e => onAnchor(e, homeAnchor)}
+          {seoPages.map(({ slug, navLabel }) => (
+            <a key={slug} href={`/${slug}`}
               className="font-accent font-light text-white whitespace-nowrap transition-colors duration-300 hover:text-champagne underline underline-offset-4 decoration-[1px] decoration-white/50 hover:decoration-champagne"
               style={{ fontSize: 18 }}
             >
               {navLabel}
             </a>
           ))}
+          <a href={BLOG_LINK.href}
+            className="font-accent font-light text-white whitespace-nowrap transition-colors duration-300 hover:text-champagne underline underline-offset-4 decoration-[1px] decoration-white/50 hover:decoration-champagne"
+            style={{ fontSize: 18 }}
+          >
+            {BLOG_LINK.label}
+          </a>
         </nav>
         <SocialLinks />
       </div>
@@ -96,6 +95,7 @@ export default function SiteFooter() {
           {LEGAL.map(({ label, href }) => (
             <a key={label} href={href} className="font-ui font-light text-white/85 transition-colors duration-300 hover:text-white cursor-pointer underline underline-offset-4 decoration-[1px] decoration-white/30 hover:decoration-white text-[13px] sm:text-[14px] md:text-[15.5px]">{label}</a>
           ))}
+          <button type="button" onClick={openCookiePreferences} className="font-ui font-light text-white/85 transition-colors duration-300 hover:text-white cursor-pointer underline underline-offset-4 decoration-[1px] decoration-white/30 hover:decoration-white text-[13px] sm:text-[14px] md:text-[15.5px]">Cookie preferences</button>
         </div>
         <span className="font-ui text-white/85 text-center text-[12px] sm:text-[14px] md:text-[16px]">© {YEAR} {site.name}. All rights reserved.</span>
       </div>

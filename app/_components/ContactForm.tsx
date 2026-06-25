@@ -91,6 +91,13 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
   const widgetId = useRef<string | null>(null);
   const [token, setToken] = useState("");
 
+  // Focus management: move focus to the confirmation when the form succeeds so
+  // screen-reader and keyboard users are told the enquiry was sent.
+  const successHeadingRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (status === "success") successHeadingRef.current?.focus();
+  }, [status]);
+
   useEffect(() => {
     if (!turnstileKey) return;
     let cancelled = false;
@@ -136,7 +143,7 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
     if (errors[k]) setErrors(er => ({ ...er, [k]: undefined }));
   };
 
-  const validate = (): boolean => {
+  const computeErrors = (): Errors => {
     const next: Errors = {};
     if (!fields.name.trim()) next.name = "Please enter your name.";
 
@@ -153,15 +160,28 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
       if (!fields.message.trim()) next.message = "Tell us a little about what you need.";
       else if (fields.message.trim().length < 10) next.message = "A few more words, please.";
     }
-
-    setErrors(next);
-    return Object.keys(next).length === 0;
+    return next;
   };
+
+  /** Field id-suffix per key, in the order they appear — used to move focus to
+   *  the first invalid field on a failed submit. */
+  const FOCUS_ORDER: [keyof Fields, string][] = [
+    ["name", "name"], ["email", "email"], ["phone", "phone"],
+    ["preferredDate", "date"], ["message", "message"],
+  ];
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (status === "submitting") return;
-    if (!validate()) return;
+
+    const found = computeErrors();
+    setErrors(found);
+    if (Object.keys(found).length > 0) {
+      // Take keyboard & screen-reader users straight to the first problem field.
+      const first = FOCUS_ORDER.find(([k]) => found[k]);
+      if (first) document.getElementById(`${uid}-${first[1]}`)?.focus();
+      return;
+    }
 
     // honeypot — bots fill hidden fields; humans don't
     if ((e.currentTarget.elements.namedItem("_gotcha") as HTMLInputElement)?.value) return;
@@ -238,13 +258,13 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
             <path d="M20 6 9 17l-5-5" />
           </svg>
         </span>
-        <h3 className="m-0 font-display font-semibold" style={{ color: "rgb(2,36,72)", fontSize: 26 }}>
+        <h3 ref={successHeadingRef} tabIndex={-1} className="m-0 font-display font-semibold outline-none" style={{ color: "rgb(2,36,72)", fontSize: 26 }}>
           Thank you — we&apos;ll be in touch.
         </h3>
         <p className="m-0 font-ui" style={{ color: "rgb(67,71,78)", fontSize: 15, maxWidth: 360, lineHeight: 1.6 }}>
           Your {variant === "tour" ? "tour request" : "enquiry"} is on its way to our team. We typically respond within one business day.
         </p>
-        <p className="m-0 font-ui" style={{ color: "rgb(120,124,131)", fontSize: 13, maxWidth: 360, lineHeight: 1.6 }}>
+        <p className="m-0 font-ui" style={{ color: "rgb(88,92,99)", fontSize: 13, maxWidth: 360, lineHeight: 1.6 }}>
           We&apos;ve also emailed you a confirmation — if it&apos;s not in your inbox, check your spam folder, or reach us at{" "}
           <a href={`mailto:${site.contact.email}`} style={{ color: "rgb(160,128,72)", textDecoration: "underline" }}>
             {site.contact.email}
@@ -267,12 +287,13 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
     <form
       onSubmit={onSubmit}
       noValidate
+      aria-busy={status === "submitting"}
       className="flex flex-col gap-4 rounded-[20px] bg-white p-6 sm:p-8"
       style={{ boxShadow: "inset 0 0 0 1px rgb(225,216,194), 0 24px 50px rgba(20,35,59,.10)" }}
     >
       <Field id={`${uid}-name`} label="Name" error={errors.name}>
         <input
-          id={`${uid}-name`} name="name" type="text" autoComplete="name"
+          id={`${uid}-name`} name="name" type="text" autoComplete="name" aria-required="true"
           value={fields.name} onChange={set("name")}
           aria-invalid={!!errors.name} aria-describedby={errors.name ? `${uid}-name-err` : undefined}
           className={fieldCls(!!errors.name)} placeholder="Your full name"
@@ -282,7 +303,7 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field id={`${uid}-email`} label="Email" error={errors.email}>
           <input
-            id={`${uid}-email`} name="email" type="email" autoComplete="email" inputMode="email"
+            id={`${uid}-email`} name="email" type="email" autoComplete="email" inputMode="email" aria-required="true"
             value={fields.email} onChange={set("email")}
             aria-invalid={!!errors.email} aria-describedby={errors.email ? `${uid}-email-err` : undefined}
             className={fieldCls(!!errors.email)} placeholder="you@example.com"
@@ -290,7 +311,7 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
         </Field>
         <Field id={`${uid}-phone`} label="Phone" error={errors.phone}>
           <input
-            id={`${uid}-phone`} name="phone" type="tel" autoComplete="tel" inputMode="tel"
+            id={`${uid}-phone`} name="phone" type="tel" autoComplete="tel" inputMode="tel" aria-required="true"
             value={fields.phone} onChange={set("phone")}
             aria-invalid={!!errors.phone} aria-describedby={errors.phone ? `${uid}-phone-err` : undefined}
             className={fieldCls(!!errors.phone)} placeholder="(512) 555-0199"
@@ -320,7 +341,7 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field id={`${uid}-date`} label="Preferred date" error={errors.preferredDate}>
             <input
-              id={`${uid}-date`} name="preferredDate" type="date"
+              id={`${uid}-date`} name="preferredDate" type="date" aria-required="true"
               value={fields.preferredDate} onChange={set("preferredDate")}
               aria-invalid={!!errors.preferredDate} aria-describedby={errors.preferredDate ? `${uid}-date-err` : undefined}
               className={fieldCls(!!errors.preferredDate)}
@@ -339,7 +360,7 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
 
       <Field id={`${uid}-message`} label={copy.messageLabel} error={errors.message}>
         <textarea
-          id={`${uid}-message`} name="message" rows={4}
+          id={`${uid}-message`} name="message" rows={4} aria-required={variant === "lease"}
           value={fields.message} onChange={set("message")}
           aria-invalid={!!errors.message} aria-describedby={errors.message ? `${uid}-message-err` : undefined}
           className={`${fieldCls(!!errors.message)} resize-y`}
@@ -370,7 +391,7 @@ export default function ContactForm({ variant = "lease" }: { variant?: ContactVa
       >
         {status === "submitting" ? "Sending…" : copy.submit}
       </button>
-      <p className="m-0 text-center font-ui" style={{ color: "rgb(120,124,131)", fontSize: 12, lineHeight: 1.5 }}>
+      <p className="m-0 text-center font-ui" style={{ color: "rgb(88,92,99)", fontSize: 12, lineHeight: 1.5 }}>
         We&apos;ll only use your details to respond to this enquiry.
       </p>
     </form>
@@ -385,7 +406,7 @@ function Field({
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="font-accent font-semibold" style={{ color: "rgb(33,58,92)", fontSize: 12, letterSpacing: 1 }}>
-        {label}{optional && <span style={{ color: "rgb(150,150,150)", fontWeight: 400 }}> (optional)</span>}
+        {label}{optional && <span style={{ color: "rgb(104,108,115)", fontWeight: 400 }}> (optional)</span>}
       </label>
       {children}
       {error && (

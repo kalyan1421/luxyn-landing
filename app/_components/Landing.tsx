@@ -7,6 +7,7 @@ import SiteHeader from "./SiteHeader";
 import SiteFooter from "./SiteFooter";
 import { site, fullAddress } from "../_lib/site";
 import { faqs, contentDates } from "../_lib/content";
+import { SCROLL_TARGET_KEY } from "../_lib/nav";
 
 /* ─── animation helpers ─────────────────────────────────── */
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -62,9 +63,9 @@ export default function Landing() {
   const [heroH,   setHeroH]     = useState(750);
   const [contactVariant, setContactVariant] = useState<ContactVariant>("lease");
   const heroRef  = useRef<HTMLElement>(null);
-  const heroBgRef = useRef<HTMLDivElement>(null);
+  const heroBgRef = useRef<HTMLImageElement>(null);
 
-  /* smooth-scroll */
+  /* smooth-scroll to an in-page section (header menu + in-page buttons). */
   const nav = (id: string) => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -77,18 +78,19 @@ export default function Landing() {
   /* measure hero height once */
   useEffect(() => { if (heroRef.current) setHeroH(heroRef.current.offsetHeight); }, []);
 
-  /* deep-link support: if the URL carries a section hash (e.g. /#gallery — used
-     by the /salon-suites, /gallery, … entry routes), scroll to that section
-     instead of treating it as a separate page. Also responds to later hash
-     changes from in-page or external links. */
+  /* cross-page hand-off: when a header menu link is clicked from another page
+     (a section SEO page or a legal page), it stores the target section and sends
+     the visitor here. Scroll to it once, then clear the flag. */
   useEffect(() => {
-    const scrollToHash = () => {
-      const id = decodeURIComponent(window.location.hash.slice(1));
-      if (id) nav(id);
-    };
-    const t = window.setTimeout(scrollToHash, 80);
-    window.addEventListener("hashchange", scrollToHash);
-    return () => { window.clearTimeout(t); window.removeEventListener("hashchange", scrollToHash); };
+    let id: string | null = null;
+    try {
+      id = sessionStorage.getItem(SCROLL_TARGET_KEY);
+      if (id) sessionStorage.removeItem(SCROLL_TARGET_KEY);
+    } catch { /* storage blocked — nothing to scroll to */ }
+    if (!id) return;
+    const target = id;
+    const t = window.setTimeout(() => nav(target), 90);
+    return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -133,17 +135,22 @@ export default function Landing() {
           className="relative w-full overflow-hidden flex flex-col items-center justify-center lg:h-[100svh] lg:min-h-[700px] pt-36 pb-24 lg:pt-20 lg:pb-10"
           style={{ background: "rgb(20,35,59)" }}
         >
-          <div
+          {/* Real <img> (not a CSS background) so Googlebot-Image can crawl and
+              index it — the LCP element, already preloaded in the layout head.
+              eslint-disable-next-line @next/next/no-img-element */}
+          <img
             ref={heroBgRef}
-            role="img"
-            aria-label="Interior of a private, design-led LUXYN salon and wellness suite in Leander, TX"
-            className="absolute will-change-transform"
+            src="/assets/hero-bg.webp"
+            alt="Interior of a private, design-led LUXYN salon and wellness suite in Leander, TX"
+            fetchPriority="high"
+            decoding="async"
+            className="absolute will-change-transform object-cover"
             style={{
               left: 0,
               top: "-15%",
               width: "100%",
               height: "130%",
-              background: "url(/assets/hero-bg.webp) 50% 30% / cover no-repeat"
+              objectPosition: "50% 30%"
             }}
           />
           <div className="absolute inset-0 z-[1]" style={{ background: "linear-gradient(110deg,rgba(20,35,59,.86) 0%,rgba(20,35,59,.45) 46%,rgba(20,35,59,.08) 70%)" }} />
@@ -162,7 +169,7 @@ export default function Landing() {
                 className="m-0 font-display font-medium text-white text-4xl sm:text-5xl lg:text-[52px]"
                 style={{ lineHeight: 1.05, letterSpacing: "-0.01em" }}
               >
-                Space To Do Your Best Work. A Calm Home For Your Craft.
+                Space to Do Your Best Work — Private Salon &amp; Wellness Suites in Leander, TX.
               </motion.h1>
               <motion.p
                 variants={FU}

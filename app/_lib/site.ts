@@ -76,6 +76,24 @@ export const site = {
   business: {
     /** Price band shown in LocalBusiness rich results: "$" – "$$$$". */
     priceRange: "$$", // TODO PLACEHOLDER — confirm band
+    /** Concrete, citation-ready facts for AEO — AI answer engines cite specific
+     *  numbers, not adjectives. Fill each with the REAL value before launch.
+     *  Empty strings are omitted everywhere (facts.json, llms.txt, llms-full.txt),
+     *  so it is safe to ship blank — but DO NOT invent these. */
+    facts: {
+      suiteCount: "", // e.g. "24" — number of private suites available to lease
+      suiteSizeRange: "", // e.g. "90–160 sq ft" — typical suite footprint
+      leaseTerms: "", // e.g. "Flexible monthly and annual leases"
+      yearEstablished: "", // e.g. "2026"
+    },
+    /** Real, sourced customer ratings (e.g. aggregated from Google reviews) —
+     *  enables star rich results on the LocalBusiness. NEVER hand-write these:
+     *  self-authored ratings violate Google's policy and earn no stars. Leave
+     *  reviewCount: 0 to omit the AggregateRating from structured data entirely. */
+    aggregateRating: {
+      ratingValue: "", // e.g. "4.9" — average of genuine customer ratings
+      reviewCount: 0, // e.g. 37 — number of ratings behind the average
+    },
     /** Map coordinates for the LocalBusiness "geo" — improves local/Maps SEO.
      *  Leave both "" until known; empty values are omitted from structured data. */
     geo: {
