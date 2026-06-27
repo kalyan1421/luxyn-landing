@@ -28,7 +28,7 @@ export interface Env {
   TURNSTILE_SECRET?: string;
 }
 
-type Variant = "lease" | "tour";
+type Variant = "lease" | "tour" | "newsletter";
 
 const ESCAPE: Record<string, string> = {
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
@@ -222,7 +222,7 @@ export function buildLeadEmail(d: Enquiry, env: Env): { subject: string; html: s
   const replySubject = `Re: your ${d.requestKind} with LUXYN`;
   const inner =
     eyebrow(`New ${d.interest} enquiry`) +
-    heading(`${d.firstName} wants to ${d.action}`) +
+    heading(d.variant === "newsletter" ? `New subscriber: ${esc(d.email)}` : `${d.firstName} wants to ${d.action}`) +
     para(`A fresh ${esc(d.requestKind)} just came in through the LUXYN website. The full details are below — reply to this email to respond to ${esc(d.firstName)} directly.`) +
     detailTable(d.rows) +
     button(`mailto:${esc(d.email)}?subject=${encodeURIComponent(replySubject)}`, `Reply to ${d.firstName}`, "navy") +
@@ -251,11 +251,17 @@ export function buildConfirmationEmail(d: Enquiry, env: Env): { subject: string;
           "A LUXYN host reaches out to finalise the details of your visit.",
           "You tour the available suites in person and picture your craft in the space.",
         ]
-      : [
-          "We review your enquiry and match you with suites that fit your craft.",
-          "A member of our team reaches out by phone or email to introduce LUXYN.",
-          "We arrange a private tour at a time that suits you — no pressure, no rush.",
-        ];
+      : d.variant === "newsletter"
+        ? [
+            "You're on the list for new guides on running an independent suite business.",
+            "We only send when there's something genuinely useful — never spam.",
+            "Ready sooner? Reply any time and we'll arrange a private tour.",
+          ]
+        : [
+            "We review your enquiry and match you with suites that fit your craft.",
+            "A member of our team reaches out by phone or email to introduce LUXYN.",
+            "We arrange a private tour at a time that suits you — no pressure, no rush.",
+          ];
   const inner =
     eyebrow(d.interest) +
     heading(`Thank you, ${d.firstName}.`) +
@@ -309,8 +315,13 @@ export default {
     // Honeypot: bots fill the hidden _gotcha field. Pretend success, send nothing.
     if (body._gotcha) return jsonResponse({ ok: true }, 200, origin);
 
+    const variant: Variant =
+      body.variant === "tour" ? "tour" : body.variant === "newsletter" ? "newsletter" : "lease";
+
     // Turnstile: verify the token when a secret is configured (skipped otherwise).
-    if (env.TURNSTILE_SECRET) {
+    // The newsletter signup is a single email field with no Turnstile widget, so
+    // it relies on the honeypot above instead of a challenge.
+    if (env.TURNSTILE_SECRET && variant !== "newsletter") {
       const token = String(body.turnstileToken ?? "");
       if (!token) {
         return jsonResponse({ ok: false, error: "Verification required" }, 403, origin);
@@ -330,34 +341,39 @@ export default {
       }
     }
 
-    const variant: Variant = body.variant === "tour" ? "tour" : "lease";
     const name = String(body.name ?? "").trim();
     const email = String(body.email ?? "").trim();
     const phone = String(body.phone ?? "").trim();
     const message = String(body.message ?? "").trim();
 
-    if (!name || !email || !phone) {
+    // The newsletter signup is a single email field; lease/tour need full contact.
+    if (variant === "newsletter") {
+      if (!email) {
+        return jsonResponse({ ok: false, error: "Missing email" }, 422, origin);
+      }
+    } else if (!name || !email || !phone) {
       return jsonResponse({ ok: false, error: "Missing required fields" }, 422, origin);
     }
     if (!isEmail(email)) {
       return jsonResponse({ ok: false, error: "Invalid email" }, 422, origin);
     }
 
-    const interest = variant === "tour" ? "Book a tour" : "Lease a suite";
-    const requestKind = variant === "tour" ? "tour request" : "enquiry";
-    const firstName = name.split(" ")[0] || name;
+    const interest =
+      variant === "tour" ? "Book a tour" : variant === "newsletter" ? "Newsletter" : "Lease a suite";
+    const requestKind =
+      variant === "tour" ? "tour request" : variant === "newsletter" ? "subscription" : "enquiry";
+    const firstName = name.split(" ")[0] || "there";
 
     // Field list shown in both emails — common fields + variant extras.
-    const rows: [string, string][] = [
-      ["Name", name],
-      ["Email", email],
-      ["Phone", phone],
-      ["Interest", interest],
-    ];
+    const rows: [string, string][] = [];
+    if (name) rows.push(["Name", name]);
+    rows.push(["Email", email]);
+    if (phone) rows.push(["Phone", phone]);
+    rows.push(["Interest", interest]);
     if (variant === "lease") {
       if (body.suiteType) rows.push(["Suite type", String(body.suiteType)]);
       if (body.moveIn) rows.push(["Target move-in", String(body.moveIn)]);
-    } else {
+    } else if (variant === "tour") {
       if (body.preferredDate) rows.push(["Preferred date", String(body.preferredDate)]);
       if (body.preferredTime) rows.push(["Preferred time", String(body.preferredTime)]);
     }
@@ -365,7 +381,8 @@ export default {
 
     const toList = env.TO_EMAIL.split(",").map(s => s.trim()).filter(Boolean);
     const salesInbox = toList[0];
-    const action = variant === "tour" ? "book a tour" : "lease a suite";
+    const action =
+      variant === "tour" ? "book a tour" : variant === "newsletter" ? "join the LUXYN journal" : "lease a suite";
 
     const enquiry: Enquiry = { variant, name, firstName, email, phone, interest, requestKind, action, rows };
     const lead = buildLeadEmail(enquiry, env);

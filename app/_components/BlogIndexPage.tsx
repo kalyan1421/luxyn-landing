@@ -1,6 +1,7 @@
 import SiteHeader from "./SiteHeader";
 import SiteFooter from "./SiteFooter";
 import PageHero from "./PageHero";
+import NewsletterSignup from "./NewsletterSignup";
 import { site } from "../_lib/site";
 import { blogIndex, blogPosts, formatPostDate, postUrl } from "../_lib/blog";
 
@@ -135,6 +136,9 @@ export default function BlogIndexPage() {
               </div>
             </>
           )}
+
+          {/* ── Newsletter signup ─────────────────────────────────── */}
+          <NewsletterSignup />
 
           {/* ── Closing conversion band ───────────────────────────── */}
           <div

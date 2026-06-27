@@ -4,6 +4,7 @@ import PageHero from "./PageHero";
 import ArticleProgress from "./ArticleProgress";
 import ArticleToc from "./ArticleToc";
 import ArticleShare from "./ArticleShare";
+import NewsletterSignup from "./NewsletterSignup";
 import { site } from "../_lib/site";
 import { type BlogPost, formatPostDate, postUrl, headings, otherPosts, adjacentPosts, authorBio, slugify, howToSteps } from "../_lib/blog";
 
@@ -24,12 +25,19 @@ export default function BlogPostPage({ post }: { post: BlogPost }) {
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "ImageObject",
+        "@id": `${url}#primaryimage`,
+        url: `${site.url}${post.image}`,
+        contentUrl: `${site.url}${post.image}`,
+        caption: post.title,
+      },
+      {
         "@type": "BlogPosting",
         "@id": `${url}#article`,
         headline: post.title,
         description: post.description,
         url,
-        image: `${site.url}${post.image}`,
+        image: { "@id": `${url}#primaryimage` },
         datePublished: post.published,
         dateModified: post.updated,
         inLanguage: "en-US",
@@ -446,6 +454,9 @@ export default function BlogPostPage({ post }: { post: BlogPost }) {
               </a>
             </section>
           )}
+
+          {/* newsletter signup */}
+          <NewsletterSignup />
         </div>
       </main>
 
